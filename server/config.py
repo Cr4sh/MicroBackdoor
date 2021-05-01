@@ -27,10 +27,10 @@ class Conf(object):
     HTTP_STATIC = os.path.join(SERVER_DIR_PATH, 'static')
 
     # admin pannel location, login and password
-    HTTP_PATH = '/c3a1f6e1'
+    HTTP_PATH = '/7cad474e'
     HTTP_RELAM = 'Restricted Access'
-    HTTP_USERS = { 'admin': 'jGCq4WBabhGSJtUY' }
-    HTTP_DIGEST_KEY = 'a565c27146791cfb'
+    HTTP_USERS = { 'admin': 'admin' }
+    HTTP_DIGEST_KEY = '6baf974b8352c9a1'
 
     # address and port of the web server
     HTTP_ADDR = '0.0.0.0'
