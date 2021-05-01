@@ -35,17 +35,17 @@ Key features of the Micro Backdoor:
 
 Main web interface page with connected clients list:
 
-<img src="https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_main.png" width="885" height="595" style="border: 1px solid black;">
+<img src="https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_main.png" width="885" height="595">
   
 
 Command shell page:
 
-<img src="https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_shell.png" width="892" height="634" style="border: 1px solid black;">
+<img src="https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_shell.png" width="889" height="631">
   
   
 File manager page:
 
-<img src="https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_files.png" width="885" height="588" style="border: 1px solid black;">
+<img src="https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_files.png" width="885" height="588">
 
 
 ## Configuring the server
@@ -161,7 +161,7 @@ Host my-server
 
 Micro Backdoor client consists from binary part used to implement backdoor functionality and JScript wrapper combined with the shellcode used to run and deliver the binary part in file-less way.  
 
-⚠️ ** JScript and PowerShell code used in client dropper is easily detectable my most of AV/EDR products, you should consider to modify it [or use other methods](https://github.com/Cr4sh/s6_pcie_microblaze/tree/master/python/payloads/DmaBackdoorBoot) to deliver binary part of the client**  
+⚠️ **JScript and PowerShell code used in client dropper is easily detectable my most of AV/EDR products, you should consider to modify it [or use other methods](https://github.com/Cr4sh/s6_pcie_microblaze/tree/master/python/payloads/DmaBackdoorBoot) to deliver binary part of the client**  
 
 First, you have to configure the binary part with the help of `./client_builder.py` command line program, it operates with the configuration specified in `./server/config.py` file mentioned in previous part of the document:
 
