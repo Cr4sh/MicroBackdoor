@@ -1,0 +1,71 @@
+
+body {    
+    font-family: Courier, monospace;
+    white-space: pre;    
+    word-break: break-word;
+    font-size: 12pt;  
+}
+
+a:link, a:active, a:visited {
+    color: #224884;
+}
+
+a:hover {
+    color: #842121;
+}
+
+.log {
+    white-space: pre-line;
+}
+
+.hdr {    
+    margin-left: 90px;
+    margin-bottom: 20px;
+}
+
+.btn {    
+    border-radius: 3px;
+    background-color: #000000;    
+    display: inline;
+    padding: 5px 10px 5px 10px;
+    opacity: 70%;
+}
+
+.btn:hover { 
+    opacity: 100%;
+}
+
+.btn a:link, .btn a:active, .btn a:visited {
+    text-decoration: none;
+    color: #FFFFFF;
+}
+
+.btn-red {    
+    background-color: #FF0000;    
+}
+
+.btn-blue {
+    background-color: #4F4789;
+}
+
+.info {  
+    border-bottom: 3px dotted #A0A0A0;  
+}  
+
+.client {
+    margin-top: 5px;
+    border-top: 3px dotted #A0A0A0;    
+}
+
+.terminal {
+    -webkit-border-radius: 4px;
+       -moz-border-radius: 4px;
+            border-radius: 4px;
+    overflow: scroll;
+    font-size: 10pt;
+}
+
+.shell-output {
+    width: 800px;
+    height: 600px;
+}

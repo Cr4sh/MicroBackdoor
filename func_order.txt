@@ -1,0 +1,7 @@
+dll_inject_shellcode@4
+dll_inject_CalcHash@4
+dll_inject_GetModuleAddressByHash@4
+dll_inject_GetProcAddressByHash@8
+dll_inject_ProcessRelocs@8
+dll_inject_ProcessImports@4
+dll_inject_shellcode_end@0

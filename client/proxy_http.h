@@ -1,0 +1,6 @@
+
+#define CLIENT_PROXY_HTTP_MAX_HEADERS_LEN 0x200
+#define CLIENT_PROXY_HTTP_RECV_TIMEOUT 10 // in seconds
+
+
+SOCKET ProxyConnectHttp(PCLIENT_PROXY Server, DWORD Host, USHORT Port);
