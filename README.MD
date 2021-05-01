@@ -5,6 +5,11 @@ Micro Backdoor is C2 tool for Windows targets with easy customizable code base a
 
 I'm using Micro Backdoor mostly for demonstration purposes as payload for [my firmware rootkits](https://github.com/Cr4sh/s6_pcie_microblaze/tree/master/python/payloads/DmaBackdoorBoot) and various low level persistence techniques. Its code was written in couple of nights, so, it might contain bugs and vulnerabilities: use it only for your own risk.
 
+[General information](#general-information)  
+[Web interface screenshots](#web-interface-screenshots)  
+[Configuring the server](#configuring-the-server)  
+[Deploying the server](#deploying-the-server)  
+[Configuring the client](#configuring-the-client)  
 
 ## General information
 
@@ -163,7 +168,7 @@ Host my-server
 
 Micro Backdoor client consists from binary part used to implement backdoor functionality and JScript wrapper combined with the shellcode used to run and deliver the binary part in file-less way.  
 
-⚠️ **JScript and PowerShell code used in client dropper is easily detectable my most of AV/EDR products, you should consider to modify it [or use other methods](https://github.com/Cr4sh/s6_pcie_microblaze/tree/master/python/payloads/DmaBackdoorBoot) to deliver the binary part of the client**  
+⚠️ **JScript and PowerShell code used in client dropper is easily detectable by most of AV/EDR products, you should consider to modify it [or use other methods](https://github.com/Cr4sh/s6_pcie_microblaze/tree/master/python/payloads/DmaBackdoorBoot) to deliver the binary part of the client**  
 
 First, you have to configure the binary using `./client_builder.py` command line program, it operates with default configuration specified in `./server/config.py` file mentioned in previous part of the document:
 
