@@ -35,15 +35,17 @@ Key features of the Micro Backdoor:
 
 Main web interface page with connected clients list:
 
-<img src="https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_main.png" width="885" height="595">
+<img src="https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_main.png" width="885" height="595" style="border: 1px solid black;">
   
+
 Command shell page:
 
-<img src="https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_shell.png" width="892" height="634">
-
+<img src="https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_shell.png" width="892" height="634" style="border: 1px solid black;">
+  
+  
 File manager page:
 
-<img src="https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_files.png" width="885" height="588">
+<img src="https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_files.png" width="885" height="588" style="border: 1px solid black;">
 
 
 ## Configuring the server
@@ -159,6 +161,8 @@ Host my-server
 
 Micro Backdoor client consists from binary part used to implement backdoor functionality and JScript wrapper combined with the shellcode used to run and deliver the binary part in file-less way.  
 
+⚠️ ** JScript and PowerShell code used in client dropper is easily detectable my most of AV/EDR products, you should consider to modify it [or use other methods](https://github.com/Cr4sh/s6_pcie_microblaze/tree/master/python/payloads/DmaBackdoorBoot) to deliver binary part of the client**  
+
 First, you have to configure the binary part with the help of `./client_builder.py` command line program, it operates with the configuration specified in `./server/config.py` file mentioned in previous part of the document:
 
 ```
@@ -174,3 +178,13 @@ $ ./client_encoder.py dll_inject_script client.dll > dropper.js
 ```
 
 After the `dropper.js` was generated you can deploy it on your targets. In Windows command line you can execute JS files in the following way: `cscript.exe dropper.js`. Or you can just double click JS file in Windows Explorer to run the dropper. After the dropper was executed it’s better to wait for 10-20 seconds before deleting JS file. Micro Backdoor client provides persistence within current user account used to run the dropper, it can work with any privileges and medium integrity level.
+
+## Developed by
+
+Dmytro Oleksiuk (aka Cr4sh)
+
+cr4sh0@gmail.com<br/>
+http://blog.cr4.sh<br/>
+[@d_olex](http://twitter.com/d_olex)<br/>
+
+
