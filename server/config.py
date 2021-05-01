@@ -2,22 +2,22 @@ import os
 
 class Conf(object):
 
-    # remote server address where backdoor_server.py is running
+    # remote server address where server.py is running, used only by client_builder.py
     SERVER_ADDR = '127.0.0.1'
 
     SERVER_DIR_PATH = os.path.dirname(os.path.realpath(__file__))
     CERT_DIR_PATH = SERVER_DIR_PATH
     CERT_NAME = 'server'
 
-    # host/port where backdoor_server.py is listening for client connection
+    # host/port to listen for client connections
     LISTEN_HOST = '0.0.0.0'
     LISTEN_PORT = 28115
 
-    # host/port for backdoor_server.py process communication RPC
+    # host/port for main server process IPC
     MANAGER_HOST = '127.0.0.1'
     MANAGER_PORT = 21377
 
-    # host/port for backdoor_server.py control endpoints
+    # host and port range for child server process IPC
     MAPPER_HOST = '127.0.0.1'
     MAPPER_PORT_MIN = 30000
     MAPPER_PORT_MAX = 60000
@@ -26,16 +26,17 @@ class Conf(object):
     HTTP_SERVER_NAME = 'nginx'
     HTTP_STATIC = os.path.join(SERVER_DIR_PATH, 'static')
 
-    # admin pannel location, login and password
+    # admin panel location, its login and password
     HTTP_PATH = '/7cad474e'
     HTTP_RELAM = 'Restricted Access'
     HTTP_USERS = { 'admin': 'admin' }
     HTTP_DIGEST_KEY = '6baf974b8352c9a1'
 
-    # address and port of the web server
+    # address and port of the admin panel
     HTTP_ADDR = '0.0.0.0'
     HTTP_PORT = 24416
 
+    # Redis BD host/port and database ID
     REDIS_HOST = '127.0.0.1'
     REDIS_PORT = 6379
     REDIS_DB = 15
