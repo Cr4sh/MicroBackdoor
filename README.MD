@@ -40,17 +40,17 @@ Key features of the Micro Backdoor:
 
 Main web interface page with connected clients list:
 
-<img src="https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_main.png" width="885" height="595">
+![](https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_main.png | width=885)
   
 
 Command shell page:
 
-<img src="https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_shell.png" width="889" height="631">
+![](https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_shell.png | width=889)
   
   
 File manager page:
 
-<img src="https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_files.png" width="885" height="588">
+![](https://raw.githubusercontent.com/Cr4sh/MicroBackdoor/master/docs/images/web_files.png | width=885)
 
 
 ## Configuring the server
