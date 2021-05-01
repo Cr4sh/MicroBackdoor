@@ -1,0 +1,4 @@
+Host devel
+     HostName vm-devel.local
+     Port 22
+     User user
