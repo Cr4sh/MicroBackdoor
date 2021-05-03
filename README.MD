@@ -173,7 +173,7 @@ Before building the container you need to run `./server.py --keys` on your local
 NOTE: Before building docker container please ensure that exposed TCP ports specified in `docker/makefile.conf` are the same as `CLIENT_PORT` and `HTTP_PORT` port numbers specified in `config.py` of the server.
 
 
-# Configuring the client
+## Configuring the client
 
 Micro Backdoor client consists from the binary part used to implement backdoor functionality and JScript wrapper combined with the shellcode used to run and deliver the binary part in file-less way.  
 
