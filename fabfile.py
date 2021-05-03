@@ -31,11 +31,11 @@ def run_if_installed(command):
 def deps_python():
 
     packages = [ 'pycrypto', 'm2crypto', 'cherrypy', 'redis' ]
-    run('sudo easy_install ' + ' '.join(packages))
+    run('sudo -H pip install ' + ' '.join(packages))
 
 def deps_deb():
 
-    packages = [ 'redis-server', 'python-dev', 'python-setuptools' ]
+    packages = [ 'redis-server', 'swig', 'libssl-dev', 'build-essential', 'python', 'python-dev', 'python-setuptools', 'python-pip' ]
     run('sudo apt-get install ' + ' '.join(packages))
 
 ''' Install needed dependencies. '''

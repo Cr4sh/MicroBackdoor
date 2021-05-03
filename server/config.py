@@ -10,8 +10,8 @@ class Conf(object):
     CERT_NAME = 'server'
 
     # host/port to listen for client connections
-    LISTEN_HOST = '0.0.0.0'
-    LISTEN_PORT = 28115
+    CLIENT_HOST = '0.0.0.0'
+    CLIENT_PORT = 28115
 
     # host/port for main server process IPC
     MANAGER_HOST = '127.0.0.1'

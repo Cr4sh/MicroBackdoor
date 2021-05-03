@@ -1866,8 +1866,8 @@ def main():
     parser = OptionParser(option_list = option_list)
     options, _ = parser.parse_args()
 
-    options.addr = Conf.LISTEN_HOST if options.addr is None else options.addr
-    options.port = Conf.LISTEN_PORT if options.port is None else int(options.port)
+    options.addr = Conf.CLIENT_HOST if options.addr is None else options.addr
+    options.port = Conf.CLIENT_PORT if options.port is None else int(options.port)
 
     if options.list:
 
