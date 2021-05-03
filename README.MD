@@ -75,7 +75,7 @@ Python program `server.py` has a lot of command line options used to configure a
 1) Install needed dependencies:
 
 ```
-$ sudo apt-get install python-dev python-setuptools
+$ sudo apt-get install build-essential swig libssl-dev python python-dev python-setuptools python-pip
 $ sudo pip install m2crypto pycrypto redis cherrypy
 ```
 
@@ -155,13 +155,22 @@ Host my-server
      IdentityFile ~/.ssh/id_rsa
 ```
 
-2) Run `./server.py --keys` on your local machine in order to generate RSA key pair.
+2) Run `./server.py --keys` on your local machine in to generate RSA key pair for secure communication between Micro Backdoor client and server.
 
 3) Run `fab deps:host=my-server` command to connect to the remote host `my-server` over the SSH and install needed dependencies.
 
 4) Run `fab deploy:host=my-server` command to copy needed files to the remote host `my-server` and run the server.
 
 5) You also can run `fab stop` to stop running server, `fab start` to start it and `fab uninstall` to shutdown and remove its files form the remote host.
+
+
+## Building Docker container
+
+You also can run Micro Backdoor server inside Docker container with SSH and Redis servers included. To install docker on Ubuntu just run `sudo apt-get install docker.io`, for others distributives and operating systems please refer to [official documentation](https://docs.docker.com/install/).  
+
+Before building the container you need to run `./server.py --keys` on your local machine to generate RSA key pair for secure communication between Micro Backdoor client and server. Then you have to cd into the `docker` directory of the server and run `make` to build docker image and start the container. To stop running container you can press Ctrl+C and use `make start`/`make stop` commands to run it in the background, `make rm` to remove container and `make rmi` to remove image. To ssh into the running container run `make shell` and enter the password specified in `docker/makefile.conf` file ("acab" without quotes by default).  
+
+NOTE: Before building docker container please ensure that exposed TCP ports specified in `docker/makefile.conf` are the same as `CLIENT_PORT` and `HTTP_PORT` port numbers specified in `config.py` of the server.
 
 
 # Configuring the client
