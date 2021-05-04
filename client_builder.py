@@ -91,7 +91,7 @@ def main():
 
     else:
 
-        port = Conf.LISTEN_PORT
+        port = Conf.CLIENT_PORT
 
     manager = KeysManager(Conf.CERT_DIR_PATH)
 
