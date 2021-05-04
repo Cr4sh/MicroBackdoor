@@ -52,7 +52,7 @@ BOOL AutorunRemove(void)
     char *lpszCommandLine = GetCommandLine();
     if (lpszCommandLine == NULL)
     {
-        return CMD_EXIT;
+        return FALSE;
     }
 
     // open WoW64 autorun key (is any)
@@ -901,8 +901,19 @@ DWORD CommandExec(SOCKET s, char *lpszArgs)
     StartupInfo.wShowWindow = FALSE;
     StartupInfo.hStdError = StartupInfo.hStdOutput = hConsoleOutput;
     StartupInfo.hStdInput = hConsoleInput;
+
+    BOOL bUnicode = FALSE;
+
+    if (!((m_OsVersion.dwMajorVersion == 5) ||
+          (m_OsVersion.dwMajorVersion == 6 && m_OsVersion.dwMinorVersion == 0)))
+    {
+        /*
+            Switch console code page to UTF-8 on NT 6.1 and higher,
+            on older Windows versions its support in cmd.exe is broken.
+        */
+        bUnicode = TRUE;
+    }
     
-    BOOL bUnicode = (m_OsVersion.dwMajorVersion > 5);
     UINT CodePage = bUnicode ? 65001 : 0;
     char szCmdLine[MAX_PATH];
 
@@ -917,25 +928,16 @@ DWORD CommandExec(SOCKET s, char *lpszArgs)
     
     if (CodePage == 0)
     {
+        // just for sure
         FreeConsole();
 
-        for (int attempts = 0; attempts < 30; attempts += 1)
+        // allocate new console
+        if (AllocConsole())
         {
-            // attach to child process console;
-            if (AttachConsole(ProcessInfo.dwProcessId))
-            {
-                // get console code page value
-                CodePage = GetConsoleCP();
-                FreeConsole();
-                break;
-            }
-            else
-            {
-                SwitchToThread();
-            }
+            // get console code page value
+            CodePage = GetConsoleCP();
+            FreeConsole();
         }
-
-        AllocConsole();
     }    
 
     DbgMsg(
@@ -1675,12 +1677,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, ULONG_PTR lpRes
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
-
-#ifdef DBG
-
-        AttachConsole(ATTACH_PARENT_PROCESS);
-
-#endif
 
         GetModuleFileName(GetModuleHandle(NULL), m_szPath, MAX_PATH);
 
