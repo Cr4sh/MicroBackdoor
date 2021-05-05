@@ -1463,9 +1463,9 @@ class ServerHttpAdmin(object):
             if size is not None:
 
                 # list files
-                temp += '%15s %s\n' % ('{:0,.2f}'.format(size).split('.')[0], \
-                                       self.to_link('%s/fget?id=%s&p=%s' % \
-                                       (Conf.HTTP_PATH, client_id, to_path(name)), name))
+                temp += '%15s  %s\n' % ('{:0,.2f}'.format(size).split('.')[0], \
+                                        self.to_link('%s/fget?id=%s&p=%s' % \
+                                        (Conf.HTTP_PATH, client_id, to_path(name)), name))
 
         return self.to_html(title, (data % (client_id, client.addr[0], '\\'.join(nav))) + temp)
 

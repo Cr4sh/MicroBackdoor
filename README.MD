@@ -187,8 +187,14 @@ client = ClientHelper(client_id)
 # connect to the corresponding child process of the server
 client.mapper_connect()
 
-# enumerate files in specified directory
-for size, name in client.file_list('C:\\'):
+# download "C:\Windows\win.ini" file from the client
+client.file_get('C:\\Windows\\win.ini', '/tmp/win.ini')
+
+# upload "/tmp/example.txt" file to the client
+client.file_put('C:\\Users\\Test\\example.txt', '/tmp/example.txt')
+
+# enumerate files in "C:\\Windows" directory
+for size, name in client.file_list('C:\\Windows'):
 
     if size is None:
 
@@ -200,15 +206,9 @@ for size, name in client.file_list('C:\\'):
         # print file name and size
         print('FILE: %s [%d bytes]' % (name, size))
 
-# download "C:\Windows\win.ini" file from the client
-client.file_get('C:\\Windows\\win.ini', '/tmp/win.ini')
-
-# upload "/tmp/example.txt" file to the client
-client.file_put('C:\\Users\\Test\\example.txt', '/tmp/example.txt')
-
 ```
 
-Execute WMI query and print all of the class members
+Execute WMI query and print all of the class members:
 
 ```python
 
