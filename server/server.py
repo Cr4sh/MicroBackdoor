@@ -1481,7 +1481,7 @@ class ServerHttpAdmin(object):
 
             # server downloaded file
             raise cherrypy.HTTPRedirect('%s/downloads/%s/%s' % (Conf.HTTP_PATH, client_id, 
-                                                                urllib.quote_plus(fname.encode('UTF-8'))))
+                                                                cgi.escape(fname)))
 
         return self.to_html(title, '<font color="red">ERROR: Can\'t download file from the client</font>')
 
@@ -1529,7 +1529,7 @@ class ServerHttpAdmin(object):
         if ret:
 
             raise cherrypy.HTTPRedirect('%s/flist?id=%s&p=%s' % (Conf.HTTP_PATH, client_id, \
-                                                                urllib.quote_plus(path.encode('UTF-8'))))
+                                                                cgi.escape(path)))
 
         return self.to_html(title, '<font color="red">ERROR: Can\'t upload file to the client</font>')
 
