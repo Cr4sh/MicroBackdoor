@@ -175,6 +175,9 @@ client.mapper_connect()
 # execute console command
 output, exit_code = client.execute('whoami')
 
+# execute console command and redirect its output into the stream
+client.execute('whoami', stream = sys.stdout)
+
 ```
 
 Work with the file system:
