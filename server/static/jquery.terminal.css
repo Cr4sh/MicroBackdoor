@@ -35,7 +35,7 @@
 }
 
 .terminal {
-    font-family: FreeMono, monospace;
+    font-family: 'IBM Plex Mono', monospace;
     color: #aaa;
     background-color: #000;
     font-size: 12px;

