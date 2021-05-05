@@ -1458,17 +1458,6 @@ class ServerHttpAdmin(object):
 
         title = 'Download File'
 
-        def path_escape(path):
-
-            ret, path = '', path.encode('UTF-16')[2:]
-
-            for i in range(len(path) / 2):
-
-                c, e = path[i * 2 : (i + 1) * 2]
-                if e == '\0': ret += c
-
-            return ret
-
         assert data.has_key('id')
         assert data.has_key('p')
 
@@ -1481,8 +1470,9 @@ class ServerHttpAdmin(object):
 
             return self.to_html(title, '<font color="red">ERROR: No such client</font>')
 
+        # generate local file name
         fname = '%s_%s' % (hashlib.md5(path.encode('UTF-8')).hexdigest(), 
-                           path_escape(path.replace('\\', '/').split('/')[-1]))
+                           path.replace('\\', '/').split('/')[-1])
 
         fpath = os.path.join(Conf.DOWNLOADS_DIR_PATH, client_id, fname)
 
@@ -1490,7 +1480,8 @@ class ServerHttpAdmin(object):
         if helper.file_get(path, fpath):
 
             # server downloaded file
-            raise cherrypy.HTTPRedirect('%s/downloads/%s/%s' % (Conf.HTTP_PATH, client_id, fname))
+            raise cherrypy.HTTPRedirect('%s/downloads/%s/%s' % (Conf.HTTP_PATH, client_id, 
+                                                                urllib.quote_plus(fname.encode('UTF-8'))))
 
         return self.to_html(title, '<font color="red">ERROR: Can\'t download file from the client</font>')
 
