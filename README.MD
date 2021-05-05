@@ -195,7 +195,7 @@ client.file_get('C:\\Windows\\win.ini', 'win.ini')
 # upload file to the client
 client.file_put('C:\\Users\\Test\\example.txt', 'example.txt')
 
-# enumerate files in "C:\\Windows" directory
+# enumerate files in some directory
 for size, name in client.file_list('C:\\Windows'):
 
     if size is None:
