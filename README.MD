@@ -65,7 +65,6 @@ Directory contents:
  * `config.py` &minus; Server configuration file
  * `access.log` &minus; Access log of embedded web server used for admin interface
  * `server.log` &minus; Server log file with messages related to connected clients
- * `server.pgid` &minus; Text file with PGID of the running server
  * `server.crt` &minus; Server RSA certificate used to encrypt client communication
  * `server.key` &minus; Server RSA private key, see above
  * `downloads/` &minus; Directory to store files downloaded from the clients
