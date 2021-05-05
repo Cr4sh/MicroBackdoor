@@ -113,6 +113,39 @@ class ClientHelper(object):
         self.sock, self.client_id = sock, client_id
         self.redis = None
 
+    def send(self, data):
+
+        # send all of the data
+        return self.sendall(data)
+
+    def sendall(self, data):
+
+        assert self.sock is not None
+
+        return self.sock.sendall(data)            
+
+    def recv(self, size):
+
+        assert self.sock is not None
+
+        return self.sock.recv(size)
+
+    def recvall(self, size):
+
+        ret = ''
+
+        assert self.sock is not None
+
+        while len(ret) < size:
+            
+            # receive specified amount of data
+            data = self.sock.recv(size - len(ret))
+            assert len(data) > 0
+
+            ret += data
+
+        return ret
+
     def create_folders(self):
 
         assert self.client_id is not None
@@ -145,13 +178,13 @@ class ClientHelper(object):
         assert self.sock is not None
 
         # query client ID
-        self.sock.sendall('id\n')
+        self.sendall('id\n')
 
         ret = ''
 
         while len(ret) == 0 or ret[-1] != '\n':
             
-            data = self.sock.recv(BUFF_SIZE)
+            data = self.recv(BUFF_SIZE)
             assert len(data) > 0
 
             ret += data
@@ -169,13 +202,13 @@ class ClientHelper(object):
         assert self.sock is not None
 
         # query basic client information
-        self.sock.sendall('info\n')
+        self.sendall('info\n')
 
         ret = ''
 
         while len(ret) == 0 or ret[-1] != '\n':
             
-            data = self.sock.recv(BUFF_SIZE)
+            data = self.recv(BUFF_SIZE)
             assert len(data) > 0
 
             ret += data
@@ -189,19 +222,19 @@ class ClientHelper(object):
 
         assert self.sock is not None
 
-        self.sock.sendall('ping\n')
+        self.sendall('ping\n')
 
     def exit(self):
 
         assert self.sock is not None
 
-        self.sock.sendall('exit\n')
+        self.sendall('exit\n')
 
     def uninstall(self):
 
         assert self.sock is not None
 
-        self.sock.sendall('uninst\n')
+        self.sendall('uninst\n')
 
     def _is_end_of_output(self, data):    
 
@@ -222,14 +255,14 @@ class ClientHelper(object):
         assert self.sock is not None
 
         # send command string
-        self.sock.sendall(cmd.encode('UTF-8') + '\n')
+        self.sendall(cmd.encode('UTF-8') + '\n')
 
         ret, code = '', None
 
         while True:
 
             # receive the command output
-            data = self.sock.recv(BUFF_SIZE)
+            data = self.recv(BUFF_SIZE)
             assert len(data) > 0            
 
             m = self._is_end_of_output(data)
@@ -429,11 +462,11 @@ class ClientHelper(object):
         log_write(u'update(%s): %s\n' % (self.client_id, remote_cmd))
 
         # execute update command on the client
-        self.sock.sendall('upd ' + remote_cmd + '\n')
+        self.sendall('upd ' + remote_cmd + '\n')
 
         try:
 
-            assert len(self.sock.recv(1)) > 0
+            assert len(self.recvall(1)) > 0
             return False
 
         except:
@@ -481,12 +514,12 @@ class ClientHelper(object):
                   (self.client_id, path, local_path))
 
         # send download file command
-        self.sock.sendall('fget ' + path.encode('UTF-8') + '\n')
+        self.sendall('fget ' + path.encode('UTF-8') + '\n')
 
         with open(local_path.encode('UTF-8'), 'wb') as fd:            
 
             # receive file size
-            size = self.sock.recvall(8)
+            size = self.recvall(8)
             assert len(size) == 8
 
             size = struct.unpack('Q', size)[0]
@@ -499,7 +532,7 @@ class ClientHelper(object):
                 while recvd < size:
                     
                     # receive file contents
-                    data = self.sock.recv(min(BUFF_SIZE, size - recvd))
+                    data = self.recv(min(BUFF_SIZE, size - recvd))
                     if len(data) == 0:
 
                         raise(Exception('Connection error'))
@@ -540,9 +573,9 @@ class ClientHelper(object):
         log_write(u'file_put(%s): File size is %d\n' % (self.client_id, size))
 
         # send upload file command 
-        self.sock.sendall('fput ' + path.encode('UTF-8') + '\n')
+        self.sendall('fput ' + path.encode('UTF-8') + '\n')
 
-        status = self.sock.recvall(1)
+        status = self.recvall(1)
         assert len(status) == 1
 
         status = struct.unpack('B', status)[0]
@@ -553,7 +586,7 @@ class ClientHelper(object):
             return False
 
         # send file size
-        self.sock.sendall(struct.pack('Q', size))
+        self.sendall(struct.pack('Q', size))
 
         with open(local_path, 'rb') as fd:
 
@@ -566,7 +599,7 @@ class ClientHelper(object):
                 assert len(data) > 0
                 
                 # send data to the client
-                self.sock.sendall(data)
+                self.sendall(data)
                 sent += len(data)
 
             ret = True
@@ -575,48 +608,15 @@ class ClientHelper(object):
 
     def mapper_connect(self):
 
-        class MapperStream(object):
-
-            def __init__(self, sock):
-
-                self.sock = sock
-
-            def send(self, data):
-
-                # send all of the data
-                return self.sendall(data)
-
-            def sendall(self, data):
-
-                return self.sock.sendall(data)            
-
-            def recv(self, size):
-
-                return self.sock.recv(size)
-
-            def recvall(self, size):
-
-                ret = ''
-
-                while len(ret) < size:
-                    
-                    # receive specified amount of data
-                    data = self.sock.recv(size - len(ret))
-                    assert len(data) > 0
-
-                    ret += data
-
-                return ret
-
         # query client informaion
         client = self.client_get()
-        if client is None: return False
+        if client is None: 
+
+            return False
 
         # connect to the client process
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect(( Conf.MAPPER_HOST, client.map_port ))
-
-        self.sock = MapperStream(sock)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect(( Conf.MAPPER_HOST, client.map_port ))
 
         return True
 
@@ -1401,7 +1401,7 @@ class ServerHttpAdmin(object):
 
         if len(path) > 0:
 
-            data += '<form action="%s/fput?id=%s&p=%s" method="POST" enctype="multipart/form-data">  <b>Upload</b>: <input type="submit" /><input type="file" name="file" /></form>' % \
+            data += '<form action="%s/fput?id=%s&p=%s" method="POST" enctype="multipart/form-data">  <b>Upload</b>: <input type="submit" value="Submit" /><input type="file" name="file" /></form>' % \
                      (Conf.HTTP_PATH, client_id, path)
 
         data += '''</div>
