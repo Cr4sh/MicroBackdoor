@@ -9,6 +9,7 @@ I'm using Micro Backdoor mostly for demonstration purposes as payload for [my fi
 [Web interface screenshots](#web-interface-screenshots)  
 [Configuring the server](#configuring-the-server)  
 [Deploying the server](#deploying-the-server)  
+[Building Docker container](#building-docker-container)
 [Configuring the client](#configuring-the-client)  
 
 ## General information
