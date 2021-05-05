@@ -89,7 +89,7 @@ BOOL AutorunRemove(void)
             if (dwType == REG_SZ && !strcmp(lpszValue, lpszCommandLine))
             {
                 // delete aurorun entry
-                if (RegDeleteValue(hKey, szValueName))
+                if (RegDeleteValue(hKey, szValueName) == ERROR_SUCCESS)
                 {
                     DbgMsg(__FUNCTION__"(): Autorun entry removed\n");
                     bRet = TRUE;
@@ -107,7 +107,11 @@ BOOL AutorunRemove(void)
                 if (Code == ERROR_SUCCESS)
                 {
                     // delete payload body
-                    RegDeleteValue(hKeyPayload, szValueName);
+                    if (RegDeleteValue(hKeyPayload, szValueName) == ERROR_SUCCESS)
+                    {
+                        DbgMsg(__FUNCTION__"(): Payload data removed\n");
+                    }
+
                     RegCloseKey(hKeyPayload);
                 }
                 else
