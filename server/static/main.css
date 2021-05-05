@@ -7,10 +7,12 @@ body {
 }
 
 a:link, a:active, a:visited {
+    text-decoration: none;
     color: #224884;
 }
 
 a:hover {
+    text-decoration: none;
     color: #842121;
 }
 
