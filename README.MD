@@ -189,11 +189,11 @@ client = ClientHelper(client_id)
 # connect to the corresponding child process of the server
 client.mapper_connect()
 
-# download "C:\Windows\win.ini" file from the client
-client.file_get('C:\\Windows\\win.ini', '/tmp/win.ini')
+# download file from the client
+client.file_get('C:\\Windows\\win.ini', 'win.ini')
 
-# upload "/tmp/example.txt" file to the client
-client.file_put('C:\\Users\\Test\\example.txt', '/tmp/example.txt')
+# upload file to the client
+client.file_put('C:\\Users\\Test\\example.txt', 'example.txt')
 
 # enumerate files in "C:\\Windows" directory
 for size, name in client.file_list('C:\\Windows'):
