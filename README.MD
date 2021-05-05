@@ -76,7 +76,7 @@ Python program `server.py` has a lot of command line options used to configure a
 
 ```
 $ sudo apt-get install build-essential swig libssl-dev python python-dev python-setuptools python-pip
-$ sudo pip install m2crypto pycrypto redis cherrypy
+$ sudo pip install m2crypto pycrypto redis cherrypy defusedxml
 ```
 
 2) Install and run Redis database server:
