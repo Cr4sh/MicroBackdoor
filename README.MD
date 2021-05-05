@@ -120,25 +120,25 @@ $ ./server.py --list
 Execute some command on the connected client:
 
 ```
-$ ./server.py --client <target_ID> --exec <command>
+$ ./server.py --client <client_ID> --exec <command>
 ```
 
 Upload some file to the connected client:
 
 ```
-$ ./server.py --client <target_ID> --fput <remote_path> --file <local_path>
+$ ./server.py --client <client_ID> --fput <remote_path> --file <local_path>
 ```
 
 Download some file from the connected client:
 
 ```
-$ ./server.py --client <target_ID> --fget <remote_path> --file <local_path>
+$ ./server.py --client <client_ID> --fget <remote_path> --file <local_path>
 ```
 
 Update Micro Backdoor on the client:
 
 ```     
-$ ./server.py --client <target_ID> --update <dropper_path>
+$ ./server.py --client <client_ID> --update <dropper_path>
 ```
 
 
