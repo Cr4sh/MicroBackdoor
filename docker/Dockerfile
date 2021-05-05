@@ -12,7 +12,7 @@ RUN apt-get update
 RUN apt-get install -y swig libssl-dev python python-dev python-setuptools python-pip supervisor wget net-tools redis-server build-essential
 
 # install python dependencies
-RUN pip install --force-reinstall -U m2crypto pycrypto redis cherrypy
+RUN pip install --force-reinstall -U m2crypto pycrypto redis cherrypy defusedxml
 
 # install ssh server
 RUN apt-get install -y openssh-server

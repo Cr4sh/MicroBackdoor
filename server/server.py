@@ -4,32 +4,58 @@
 import sys, os, struct, re, errno, time, random, hashlib, traceback, tempfile
 import signal, subprocess
 import select, socket, urllib
-import json, xml.dom.minidom, cgi, mimetypes
+import json, cgi, mimetypes
 from threading import Thread
 from optparse import OptionParser, make_option
 
-try: import M2Crypto, M2Crypto.RSA, M2Crypto.X509
+try: 
+
+    # https://pypi.org/project/M2Crypto/
+    import M2Crypto, M2Crypto.RSA, M2Crypto.X509
+
 except ImportError:
 
-    print('ERROR: M2Crypto (https://pypi.python.org/pypi/M2Crypto) is not installed')
+    print('ERROR: M2Crypto is not installed')
     exit(-1)
 
-try: import Crypto, Crypto.Cipher.ARC4
+try: 
+
+    # https://pypi.org/project/pycrypto/
+    import Crypto, Crypto.Cipher.ARC4
+
 except ImportError:
 
-    print('ERROR: pycrypto (https://pypi.python.org/pypi/pycrypto) is not installed')
+    print('ERROR: pycrypto is not installed')
     exit(-1)
 
-try: import cherrypy, cherrypy.process.plugins
+try: 
+
+    # https://pypi.org/project/CherryPy/
+    import cherrypy, cherrypy.process.plugins
+
 except ImportError:
 
-    print('ERROR: CherryPy (https://pypi.python.org/pypi/CherryPy) is not installed')
+    print('ERROR: CherryPy is not installed')
     exit(-1)
 
-try: import redis
+try: 
+
+    # https://pypi.org/project/redis/
+    import redis
+
 except ImportError:
 
-    print('ERROR: redis-py (https://pypi.python.org/pypi/redis) is not installed')
+    print('ERROR: redis is not installed')
+    exit(-1)
+
+try:
+
+    # https://pypi.org/project/defusedxml/
+    import defusedxml.minidom
+
+except ImportError:
+
+    print('ERROR: defusedxml is not installed')
     exit(-1)
 
 from config import Conf
@@ -353,7 +379,7 @@ class ClientHelper(object):
             assert len(data) > 0
 
             # parse query results
-            doc = xml.dom.minidom.parseString(data)
+            doc = defusedxml.minidom.parseString(data)
             root = doc.documentElement
             res = root.getElementsByTagName('RESULTS')[0]
 

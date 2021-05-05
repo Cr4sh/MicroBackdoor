@@ -30,7 +30,7 @@ def run_if_installed(command):
 
 def deps_python():
 
-    packages = [ 'pycrypto', 'm2crypto', 'cherrypy', 'redis' ]
+    packages = [ 'pycrypto', 'm2crypto', 'cherrypy', 'redis', 'defusedxml' ]
     run('sudo -H pip install ' + ' '.join(packages))
 
 def deps_deb():
