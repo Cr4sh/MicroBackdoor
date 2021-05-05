@@ -144,7 +144,7 @@ $ ./server.py --client <client_ID> --update <dropper_path>
 
 ## Using Python API
 
-As it was mentioned above, Micro Backdoor server is also providing Python API to interact with connected clients which is useful for various automation and scripting. Here's some examples how to use this API.  
+As it was mentioned above, Micro Backdoor server is also providing Python API to interact with connected clients which is quite useful for automation and scripting purposes. Here's some examples how to use this API.  
 
 Obtain and print connected clients list:
 
@@ -179,7 +179,7 @@ client.execute('whoami', stream = sys.stdout)
 
 ```
 
-Work with the file system:
+Work with the file system of the client:
 
 ```python
 
@@ -210,7 +210,7 @@ for size, name in client.file_list('C:\\Windows'):
 
 ```
 
-Execute WMI query and print all of the class members:
+Execute WMI queries on the client:
 
 ```python
 
@@ -226,7 +226,7 @@ for name, value in client.execute_wmi('os').items():
     # print class member name and value
     print('%s = %s' % (name, value))
 
-# get "Caption" class member value
+# get only "Caption" class member value
 os_name = client.execute_wmi('os', props = 'Caption')
 
 ```
@@ -246,7 +246,7 @@ Host my-server
      IdentityFile ~/.ssh/id_rsa
 ```
 
-2) Run `./server.py --keys` on your local machine in to generate RSA key pair for secure communication between Micro Backdoor client and server.
+2) Run `./server.py --keys` on your local machine to generate RSA key pair for secure communication between Micro Backdoor client and server.
 
 3) Run `fab deps:host=my-server` command to connect to the remote host `my-server` over the SSH and install needed dependencies.
 
