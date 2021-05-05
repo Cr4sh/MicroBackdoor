@@ -54,10 +54,11 @@ def log_write(data):
     global g_log_file
 
     data = '[%s]: %s' % (log_timestamp(), data)
+    data = data.encode('UTF-8')
 
     if g_log_file is not None:
 
-        g_log_file.write(data.encode('UTF-8'))
+        g_log_file.write(data)
         g_log_file.flush()
 
     sys.stdout.write(data)
@@ -237,12 +238,20 @@ class ClientHelper(object):
                 # end of the command output
                 data, code = m
 
-            ret += data
-            if stream is not None: stream.write(data.decode('UTF-8'))
+            ret += data            
 
-            if m is not None: break
+            if m is not None: 
 
-        return ret.decode('UTF-8'), code
+                break
+
+        ret = ret.decode('UTF-8')
+
+        if stream is not None: 
+
+            # write data to the stream at the end of the output
+            stream.write(ret)
+
+        return ret, code
 
     def execute(self, cmd, stream = None, log = True):
 
@@ -278,8 +287,8 @@ class ClientHelper(object):
 
         if len(data) > 0 and data[-1] == '\\':
 
-            # remove ending path separator
-            data = data[:-1]
+            # remove ending slash
+            data = data[: -1]
 
         assert code == 0
         assert len(data) > 0
@@ -456,7 +465,7 @@ class ClientHelper(object):
             assert len(line) > 1
 
             # parse single file/directory information
-            ret.append(( None if line[0] == 'D' else int(line[0], 16), ' '.join(line[1:]) ))
+            ret.append(( None if line[0] == 'D' else int(line[0], 16), ' '.join(line[1 :]) ))
 
         return ret
 
@@ -474,30 +483,30 @@ class ClientHelper(object):
         # send download file command
         self.sock.sendall('fget ' + path.encode('UTF-8') + '\n')
 
-        with open(local_path, 'wb') as fd:
+        with open(local_path.encode('UTF-8'), 'wb') as fd:            
 
             # receive file size
-            size = self.sock.recv(8)
+            size = self.sock.recvall(8)
             assert len(size) == 8
 
-            size = struct.unpack('Q', size)[0]            
+            size = struct.unpack('Q', size)[0]
             if size != 0xffffffffffffffff:
+
+                recvd = 0
 
                 log_write(u'file_get(%s): File size is %d\n' % (self.client_id, size))
 
-                readed = 0
-
-                while readed < size:
+                while recvd < size:
                     
                     # receive file contents
-                    data = self.sock.recv(min(BUFF_SIZE, size - readed))
+                    data = self.sock.recv(min(BUFF_SIZE, size - recvd))
                     if len(data) == 0:
 
                         raise(Exception('Connection error'))
 
                     # write the data into the local file
                     fd.write(data)
-                    readed += len(data)
+                    recvd += len(data)
 
                 ret = True
 
@@ -533,7 +542,7 @@ class ClientHelper(object):
         # send upload file command 
         self.sock.sendall('fput ' + path.encode('UTF-8') + '\n')
 
-        status = self.sock.recv(1)
+        status = self.sock.recvall(1)
         assert len(status) == 1
 
         status = struct.unpack('B', status)[0]
@@ -572,42 +581,32 @@ class ClientHelper(object):
 
                 self.sock = sock
 
-            def sendall(self, data):
-
-                return self.sock.sendall(struct.pack('I', len(data)) + data)
-
             def send(self, data):
 
+                # send all of the data
                 return self.sendall(data)
 
-            def _recv(self, size):
+            def sendall(self, data):
+
+                return self.sock.sendall(data)            
+
+            def recv(self, size):
+
+                return self.sock.recv(size)
+
+            def recvall(self, size):
 
                 ret = ''
 
                 while len(ret) < size:
                     
+                    # receive specified amount of data
                     data = self.sock.recv(size - len(ret))
                     assert len(data) > 0
 
                     ret += data
 
                 return ret
-
-            def recv(self, size):                
-
-                # receive the data size
-                size = self._recv(4)
-                data, size = '', struct.unpack('I', size)[0]
-
-                while len(data) < size:
-
-                    # receive specified amount of data
-                    temp = self.sock.recv(size - len(data))
-                    assert len(temp) > 0
-
-                    data += temp
-
-                return data
 
         # query client informaion
         client = self.client_get()
@@ -886,6 +885,7 @@ class ClientDispatcher(object):
 
         while len(ret) < size:
             
+            # receive specified amount of data
             data = self.request.recv(size - len(ret))
             assert len(data) > 0
 
@@ -899,7 +899,8 @@ class ClientDispatcher(object):
 
         while ret < len(data):
             
-            size = self.request.send(data[ret:])
+            # send all of the data
+            size = self.request.send(data[ret :])
             assert size > 0
 
             ret += size
@@ -977,28 +978,19 @@ class ClientDispatcher(object):
             self.client_sock.close()
             self.client_sock = None
 
-        def _client_sock_recv(size):
-
-            ret = ''
-
-            while len(ret) < size:
-                
-                data = self.client_sock.recv(size - len(ret))
-                assert len(data) > 0
-
-                ret += data
-
-            return ret
-
         addr = ( Conf.MAPPER_HOST, random.randrange(Conf.MAPPER_PORT_MIN, Conf.MAPPER_PORT_MAX) )         
         mapper, helper = None, None
 
         try:
 
-            stream = self._do_auth() 
+            # perform authentication
+            stream = self._do_auth()
+
+            # create client instance 
             helper = ClientHelper(sock = stream)
             helper.client_id = helper.get_id()
 
+            # create folders for client files
             helper.create_folders()
 
             log_write(u'SERVER: Client %s:%d connected (ID = %s, PID = %d, port = %d)\n' % \
@@ -1007,6 +999,7 @@ class ClientDispatcher(object):
             helper.client_add(addr = self.client_address, map_port = addr[1], map_pid = os.getpid(), 
                               os_version = helper.os_version(), hardware = helper.hardware_info(), info = helper.get_info())
 
+            # start mapper to receive connections from the main process
             mapper = ClientMapper(addr, self)
             mapper.start()
 
@@ -1022,6 +1015,7 @@ class ClientDispatcher(object):
 
                 if self.request in read:
 
+                    # receive data from the client
                     data = stream.recv(BUFF_SIZE)
                     if len(data) == 0: break
 
@@ -1032,7 +1026,8 @@ class ClientDispatcher(object):
 
                     elif self.client_sock is not None: 
 
-                        self.client_sock.sendall(struct.pack('I', len(data)) + data)
+                        # send data to the main process
+                        self.client_sock.sendall(data)
 
                     last_request = time.time()
 
@@ -1042,15 +1037,9 @@ class ClientDispatcher(object):
 
                     try:                         
 
-                        size = _client_sock_recv(4)
-                        data, size = '', struct.unpack('I', size)[0]
-
-                        while len(data) < size:
-
-                            temp = self.client_sock.recv(size - len(data))
-                            assert len(temp) > 0
-
-                            data += temp
+                        # receive data from the main process
+                        data = self.client_sock.recv(BUFF_SIZE)
+                        assert len(data) > 0                        
 
                     except: 
 
@@ -1062,6 +1051,7 @@ class ClientDispatcher(object):
 
                     else:
 
+                        # send data to the client
                         stream.send(data) 
 
                 if time.time() - last_request >= Conf.CLIENT_TIMEOUT:
@@ -1426,13 +1416,13 @@ class ServerHttpAdmin(object):
             # make current path for bavigation bar
             nav.append(self.to_link('%s/flist?id=%s&p=%s' % \
                                      (Conf.HTTP_PATH, client_id, 
-                                      to_quote('\\'.join(items[:i + 1]))), items[i]))
+                                      to_quote('\\'.join(items[: i + 1]))), items[i]))
 
         if len(path) > 0:
 
             temp += '%15s [%s]\n' % ('', self.to_link('%s/flist?id=%s&p=%s' % \
                                      (Conf.HTTP_PATH, client_id, 
-                                      to_quote('\\'.join(items[:-1]))), '..'))
+                                      to_quote('\\'.join(items[: -1]))), '..'))
 
         for size, name in files:
 
@@ -1613,7 +1603,8 @@ class ServerHttp():
 
                 if branch[-1] in [ '\\', '/' ]: 
 
-                    branch = branch[:-1]
+                    # remove ending slash
+                    branch = branch[: -1]
 
                 path = os.path.join(path, branch)
                 path_full = os.path.join(path_full, branch)            
@@ -1651,7 +1642,8 @@ class ServerHttp():
 '''
             if path[0] in [ '\\', '/' ]:
 
-                path = path[1:]
+                # remove starting slash
+                path = path[1 :]
 
             temp, nav, items = '', [], path.replace('\\', '/').split('/')
             to_link = lambda p, t: '<a href="%s/%s">%s</a>' % (Conf.HTTP_PATH, p, t)
@@ -1659,11 +1651,11 @@ class ServerHttp():
             for i in range(len(items)):
 
                 # make current path for bavigation bar
-                nav.append(to_link('\\'.join(items[:i + 1]), items[i]))
+                nav.append(to_link('\\'.join(items[: i + 1]), items[i]))
 
             if len(nav) > 1:
 
-                temp += '%15s [%s]\n' % ('', to_link('/'.join(items[:-1]), '..'))
+                temp += '%15s [%s]\n' % ('', to_link('/'.join(items[: -1]), '..'))
 
             for fname in os.listdir(path_full):
 
