@@ -1,7 +1,7 @@
 
 # Micro Backdoor for Windows
 
-Micro Backdoor is C2 tool for Windows targets with easy customizable code base and small footprint. Micro Backdoor consists from server, client and dropper. It wasn't designed as replacement for your favorite post-exploitation tools but rather as really minimalistic thing with all of the basic features in less than 5000 lines of code, client DLL size is less than 20Kb.  
+Micro Backdoor is C2 tool for Windows targets with easy customizable code base and small footprint. Micro Backdoor consists from server, client and dropper. It wasn't designed as replacement for your favorite post-exploitation tools but rather as really minimalistic thing with all of the basic features in less than 5000 lines of code, client DLL size is less than 20Kb without compression.  
 
 I'm using Micro Backdoor mostly for demonstration purposes as payload for [my firmware rootkits](https://github.com/Cr4sh/s6_pcie_microblaze/tree/master/python/payloads/DmaBackdoorBoot) and various low level persistence techniques. Its code was written in couple of nights, so, it might contain bugs and vulnerabilities: use it only for your own risk.
 
