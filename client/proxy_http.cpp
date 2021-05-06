@@ -116,8 +116,8 @@ SOCKET ProxyConnectHttp(PCLIENT_PROXY Server, DWORD Host, USHORT Port)
 
             // check for the end of HTTP header
             if (ReplyLen > 4 &&
-                (!strncmp(lpszReply + ReplyLen - 4, "\r\n\r\n", 4) ||
-                 !strncmp(lpszReply + ReplyLen - 2, "\n\n", 2)))
+                (!StrCmpN(lpszReply + ReplyLen - 4, "\r\n\r\n", 4) ||
+                 !StrCmpN(lpszReply + ReplyLen - 2, "\n\n", 2)))
             {
                 char *lpszStatus = NULL;
 

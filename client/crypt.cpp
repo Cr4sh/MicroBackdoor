@@ -13,7 +13,7 @@ BOOL CertDigest(PCCERT_CONTEXT pCertContext, char *lpszDigest)
         pCertContext->pbCertEncoded, pCertContext->cbCertEncoded, Sum, &SumLen))
     {
         // convert hash sum to the hexadecimal string
-        for (int i = 0; i < sizeof(Sum); i++)
+        for (int i = 0; i < sizeof(Sum); i += 1)
         {
             wsprintf(lpszDigest + i * 2, "%.2X", Sum[i]);
         }
@@ -113,7 +113,7 @@ DWORD CryptRSAPublicKeyInfo(PCCERT_CONTEXT pCertContext)
         pCertContext->pCertInfo->SubjectPublicKeyInfo.Algorithm.pszObjId
     );
 
-    if (strcmp(pCertContext->pCertInfo->SubjectPublicKeyInfo.Algorithm.pszObjId, szOID_RSA_RSA))
+    if (lstrcmp(pCertContext->pCertInfo->SubjectPublicKeyInfo.Algorithm.pszObjId, szOID_RSA_RSA))
     {
         DbgMsg(__FUNCTION__"() ERROR: Unsupported algorithm\n");
         return FALSE;
@@ -219,7 +219,7 @@ BOOL CryptRSAEncrypt(PCCERT_CONTEXT pCertContext, PVOID Data, DWORD dwDataSize, 
     HCRYPTPROV hTempProv = NULL;
     BOOL bRet = FALSE, bSuccess = FALSE;
 
-    if (strcmp(pCertContext->pCertInfo->SubjectPublicKeyInfo.Algorithm.pszObjId, szOID_RSA_RSA))
+    if (lstrcmp(pCertContext->pCertInfo->SubjectPublicKeyInfo.Algorithm.pszObjId, szOID_RSA_RSA))
     {
         DbgMsg(__FUNCTION__"() ERROR: Unsupported algorithm\n");
         return FALSE;

@@ -1,6 +1,8 @@
 #pragma warning(disable: 4200)
 #pragma warning(disable: 4996)
 
+#pragma comment(linker, "/MERGE:.rdata=.text") 
+
 #pragma once
 
 #include "targetver.h"

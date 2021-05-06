@@ -14,7 +14,7 @@ int str_item_count(char *str, char sep)
         return 0;
     }
 
-    for (size_t i = 0; i < strlen(str); i++)
+    for (int i = 0; i < lstrlen(str); i++)
     {
         if (str[i] == sep)
         {
@@ -35,7 +35,7 @@ BOOL str_item_get(char *str, char sep, int num, char **buff)
     }
     
     char *tmp = str;
-    size_t i = 0, n = 0, src_len = strlen(str);
+    int i = 0, n = 0, src_len = lstrlen(str);
 
     for (i = 0; i <= src_len; i++)
     {
@@ -68,6 +68,30 @@ BOOL str_item_get(char *str, char sep, int num, char **buff)
     }
 
     return found;
+}
+//--------------------------------------------------------------------------------------
+#pragma function(memcpy)
+
+void *memcpy(void *dst, const void *src, size_t size)
+{
+    for (size_t i = 0; i < size; i++)
+    {
+        ((unsigned char *)dst)[i] = ((unsigned char *)src)[i];
+    }
+
+    return dst;
+}
+//--------------------------------------------------------------------------------------
+#pragma function(memset)
+
+void *memset(void *mem, int val, size_t size)
+{
+    for (size_t i = 0; i < size; i++)
+    {
+        ((unsigned char *)mem)[i] = (unsigned char)val;
+    }
+
+    return mem;
 }
 //--------------------------------------------------------------------------------------
 // EoF
